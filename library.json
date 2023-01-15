@@ -18,9 +18,12 @@
   ],
   "dependencies":
 	{
-    "knx" : "*",
+    
+    "WiFi": "*",
     "tzapu/WiFiManager" : "*",
-		"profiling" : "*",
+    "knthelsing/knxx" : "1.3",
+    "TelnetStream" : "*",
+		"profiler" : "*",
     "ArduinoJson" : "*",
     "ArduinoOTA" : "*"
 	},
