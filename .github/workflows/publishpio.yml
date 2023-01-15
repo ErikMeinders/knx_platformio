@@ -6,9 +6,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python
     - name: Install PlatformIO
       run: |
         python -m pip install --upgrade pip
