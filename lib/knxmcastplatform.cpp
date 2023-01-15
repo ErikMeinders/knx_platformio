@@ -83,11 +83,12 @@ void setup()
  * Do not continue with application loop until KNX is ready and not in programming mode
  * 
  */
+DECLARE_TIMERms(httpHandle, 500);
 void loop()
 {
     knx.loop();
     
-    httpServer.handleClient();
+    if( DUE(httpHandle)) httpServer.handleClient();
 
     if(!knx.configured() || knx.progMode()) return;
 
