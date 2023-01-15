@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A platform for building KNX applications for arduino",
   "keywords": "knx, platformio",
   "repository":
@@ -18,9 +18,9 @@
   ],
   "dependencies":
 	{
-		"profiling" : "*",
     "knx" : "*",
-    "https://github.com/tzapu/WiFiManager" : "*"
+    "tzapu/WiFiManager" : "*",
+		"profiling" : "*",
 
 	},
   "license": "MIT",
