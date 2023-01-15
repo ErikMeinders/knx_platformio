@@ -1,0 +1,22 @@
+{
+  "name": "knx_platformio",
+  "version": "0.1.0",
+  "description": "A platform for building KNX applications for arduino",
+  "keywords": "knx, platformio",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/ErikMeinders/knx_platform.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Erik Meinders",
+      "email": "erik@easytocloud.com",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
