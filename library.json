@@ -16,6 +16,13 @@
       "maintainer": true
     }
   ],
+  "dependencies":
+	{
+		"profiling" : "*",
+    "knx" : "*",
+    "https://github.com/tzapu/WiFiManager" : "*"
+
+	},
   "license": "MIT",
   "frameworks": "arduino",
   "platforms": "*"
