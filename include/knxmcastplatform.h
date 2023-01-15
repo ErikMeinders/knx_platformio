@@ -18,5 +18,5 @@
 // 0 = only programming mode if button is pressed
 // >0 = timeout in ms
 // default is 20.000ms = 20s
-#define PROGMODE_TIMEOUT 5000
+#define PROGMODE_TIMEOUT 10000
 
