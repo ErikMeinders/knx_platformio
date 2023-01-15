@@ -21,7 +21,8 @@
     "knx" : "*",
     "tzapu/WiFiManager" : "*",
 		"profiling" : "*",
-
+    "ArduinoJson" : "*",
+    "ArduinoOTA" : "*"
 	},
   "license": "MIT",
   "frameworks": "arduino",
