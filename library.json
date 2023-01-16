@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A platform for building KNX applications for arduino",
   "keywords": "knx, platformio",
   "repository":
@@ -22,10 +22,8 @@
       "WiFiManager" : "https://github.com/tzapu/WiFiManager",
       "knx" : "https://github.com/thelsing/knx.git",
       "TelnetStream" : "*",
-      "profiler" : "*",
-      "ArduinoJson" : "*"
+      "profiler" : "*"
 	},
-  
   
   "srcDir": "lib",
   "includeDir": "include",
