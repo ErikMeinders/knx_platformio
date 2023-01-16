@@ -12,29 +12,23 @@ char *knxapp_hostname();
 
 void getKNXconfigured()
 {
-    unsigned long s=millis();
-    bool configured = knx.configured() || knx.individualAddress() != 0xFFFF;
-
-    // knx.progMode(true);
-    // Serial.printf("Entering prog mode for %ds\n", (PROGMODE_TIMEOUT/1000));
     uint16_t ia = knx.individualAddress();
     
     Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
     Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false");
 
-    Serial.printf("Waiting for KNX to be configured (20s in prog mode)\n");
+    Serial.printf("Waiting for KNX to be configured (%d seconds in prog mode)\n", PROGMODE_TIMEOUT/1000);
 
     // if(knx.individualAddress() == 0xFFFF) 
-        knx.progMode(true);
+    knx.progMode(true);
 
     knx.loop();
     while( !knx.configured())
     {
         knx.loop();
-        if (millis() > 20000 && knx.progMode() ){
+        if (millis() > PROGMODE_TIMEOUT && knx.progMode() ){
             knx.progMode(false);
            
-
             Serial.printf("Timeout, exiting prog mode\n");
             break;
         }
