@@ -5,8 +5,8 @@
 #define _MAX_LITTLEFS_FILES     20
 
 #include <Arduino.h>
+#include <knxp_espcompat.h>
 #include <LittleFS.h>
-#include <WebServer.h>
 
 #include <knxp_debug.h>
 #include <knxp_network.h>

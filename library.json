@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A platform for building KNX applications for arduino",
   "keywords": "knx, platformio",
   "repository":
@@ -18,18 +18,24 @@
   ],
   "dependencies":
 	{ 
-    "WiFi": "*",
-    "WiFiManager" : "https://github.com/tzapu/WiFiManager",
-    "knx" : "https://github.com/thelsing/knx.git",
-    "TelnetStream" : "*",
-		"profiler" : "*",
-    "ArduinoJson" : "*"
+      "WiFi": "*",
+      "WiFiManager" : "https://github.com/tzapu/WiFiManager",
+      "knx" : "https://github.com/thelsing/knx.git",
+      "TelnetStream" : "*",
+      "profiler" : "*",
+      "ArduinoJson" : "*"
 	},
+  
   
   "srcDir": "lib",
   "includeDir": "include",
   "excludeDir": "example",
   "license": "MIT",
   "frameworks": "arduino",
-  "platforms": "*"
+  "platforms": 
+  [
+    "espressif8266",
+    "espressif32"
+  ],
+  "headers" : "include/*.h"
 }

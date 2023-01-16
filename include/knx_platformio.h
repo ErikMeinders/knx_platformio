@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <WebServer.h>
+#include <knxp_espcompat.h>
+
 #include <knx.h>
 
 #include <timers.h>

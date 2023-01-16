@@ -2,8 +2,9 @@
 #define NETWORK_H
 
 #include <Arduino.h>
+#include <knxp_espcompat.h>
 #include <WiFiManager.h>
-#include <ESPmDNS.h>   
+
 #include <TelnetStream.h>  
      
 #include <knxp_debug.h>
