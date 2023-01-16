@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <WebServer.h>
+#include <knxp_espcompat.h>
+
 #include <knx.h>
 
 #include <timers.h>
@@ -11,7 +11,6 @@
 #include <knxp_timeinfo.h>
 #include <knxp_heartbeat.h>
 #include <knxp_resetreason.h>
-#include <knxp_LittleFSmanager.h>
 
 // define timeout for programming mode after startup
 // 0 = only programming mode if button is pressed

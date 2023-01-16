@@ -13,6 +13,7 @@ void otaInit()
       // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
       Serial.println("Start updating " + type);
     })
+#ifdef ESP32
     .onEnd([]() {
       Serial.println("\nEnd");
     })
@@ -27,7 +28,9 @@ void otaInit()
       else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
       else if (error == OTA_END_ERROR) Serial.println("End Failed");
     });
-
+#else
+  ;
+#endif
   ArduinoOTA.begin();
 }
 

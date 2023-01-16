@@ -5,13 +5,19 @@
 
 WebServer httpServer;
 
+DECLARE_TIMER( YourCodeShoutOut, 5 );
+
 void knxapp_setup() {
+
   // put your setup code here, to run once:
 
-  Debugln(" >> ERIX SETUP << ");
+  Debugln(" >> YOUR CODE SETUP << ");
 
   apiInit(&httpServer);
-  loop();
+
+  httpServer.begin();
+  
+  Debugln(">> YOUR CODE SETUP DONE << ");
 }
 
 void knxapp_loop() {
@@ -20,7 +26,8 @@ void knxapp_loop() {
 
   httpServer.handleClient();
 
-  Debugln(" >> ERIX LOOP << ");
+  if (DUE(YourCodeShoutOut ))
+    Debugln(" >> YOUR CODE LOOP << ");
 }
 
 char * knxapp_hostname()

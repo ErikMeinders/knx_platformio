@@ -19,7 +19,6 @@ void apiToggleProgMode()
   knx.loop();
 
   toReturnJSON.clear();
-
   toReturnJSON["knxprogmode"] = knx.progMode();
 
   _returnJSON(toReturnJSON.as<JsonObject>());
@@ -28,5 +27,5 @@ void apiToggleProgMode()
 void apiInit(WebServer *server)
 {
   _srv = server;
-  _srv->on("/api/knxprog",  apiToggleProgMode );
+  _srv->on("/api/knxtoggleprog",  apiToggleProgMode );
 }

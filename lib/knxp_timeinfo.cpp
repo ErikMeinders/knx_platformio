@@ -21,8 +21,9 @@
 
 #define MY_NTP_SERVER "nl.pool.ntp.org" 
 #define MY_TZ         "CET-1CEST,M3.5.0,M10.5.0/3"
-
+#ifdef ESP32
 #include "esp_sntp.h"
+#endif
 
 char * _myctime(time_t *when)
 {
@@ -47,9 +48,11 @@ void timeInit()
   configTime(0, 0, MY_NTP_SERVER); // 0, 0 because we will use TZ in the next line
   setenv("TZ", MY_TZ, 1); // Set environment variable with your time zone
   tzset();
+#ifdef ESP32
   sntp_set_sync_interval(12 * 60 * 60 * 1000UL); // 12 hours
   sntp_restart();  
- 
+#endif
+
 }
 
 static time_t    startTime;
