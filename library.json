@@ -25,7 +25,13 @@
 		"profiler" : "*",
     "ArduinoJson" : "*"
 	},
-  
+  "export" : {
+    "include": [
+      "lib/**",
+      "include/**",
+      "library.json"
+    ]
+  },
   "srcDir": "lib",
   "includeDir": "include",
   "excludeDir": "example",

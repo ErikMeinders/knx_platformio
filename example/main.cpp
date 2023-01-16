@@ -11,6 +11,7 @@ void knxapp_setup() {
   Debugln(" >> ERIX SETUP << ");
 
   apiInit(&httpServer);
+  loop();
 }
 
 void knxapp_loop() {
