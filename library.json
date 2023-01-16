@@ -32,7 +32,11 @@
     ]
   },
   "dependencies": {
-    "profiler": "erikmeinders/profiler@^0.7.0"
+    "profiler": "erikmeinders/profiler@^0.7.0",
+    "TelnetStream": "jandrassy/TelnetStream @ ^1.2.2",
+    "knx" : "https://github.com/thelsing/knx.git",
+    "WiFiManager": "https://github.com/tzapu/WiFiManager.git"
+    
   },
   "build" : {
     "libArchive": false
