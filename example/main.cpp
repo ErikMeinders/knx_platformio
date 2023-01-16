@@ -8,12 +8,16 @@ WebServer httpServer;
 DECLARE_TIMER( YourCodeShoutOut, 5 );
 
 void knxapp_setup() {
-  
+
   // put your setup code here, to run once:
 
   Debugln(" >> YOUR CODE SETUP << ");
 
   apiInit(&httpServer);
+
+  httpServer.begin();
+  
+  Debugln(">> YOUR CODE SETUP DONE << ");
 }
 
 void knxapp_loop() {
