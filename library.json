@@ -17,8 +17,7 @@
     }
   ],
   "dependencies":
-	{
-    
+	{ 
     "WiFi": "*",
     "WiFiManager" : "https://github.com/tzapu/WiFiManager",
     "knx" : "https://github.com/thelsing/knx.git",
@@ -26,8 +25,10 @@
 		"profiler" : "*",
     "ArduinoJson" : "*"
 	},
+  
   "srcDir": "lib",
   "includeDir": "include",
+  "excludeDir": "example",
   "license": "MIT",
   "frameworks": "arduino",
   "platforms": "*"
