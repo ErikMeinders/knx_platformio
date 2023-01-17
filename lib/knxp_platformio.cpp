@@ -23,6 +23,7 @@ void getKNXconfigured()
     Serial.printf("Waiting for KNX to be configured (%d seconds in prog mode)\n", PROGMODE_TIMEOUT/1000);
 
     // if(knx.individualAddress() == 0xFFFF) 
+
     knx.progMode(true);
     knx.loop();
 
@@ -30,13 +31,14 @@ void getKNXconfigured()
     {
         knx.loop();
         if (millis() > PROGMODE_TIMEOUT + configstart && knx.progMode() ){
-            knx.progMode(false);
            
             Serial.printf("Timeout, exiting prog mode\n");
             break;
         }
         delay(5);
     }
+    delay(50);
+    knx.progMode(false);
     knx.loop();
 
     ia = knx.individualAddress();
@@ -70,7 +72,7 @@ void setup()
 
     knxapp_report(step++, "Starting KNX configuration");
     getKNXconfigured();
-    knx.start();
+    
     knx.loop();
 
     knxapp_report(step++, "Starting MDNS");
