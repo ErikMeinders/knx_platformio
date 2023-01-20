@@ -8,9 +8,11 @@ void knxapp_setup();
 void knxapp_loop();
 char *knxapp_hostname();
 
+WebServer httpServer;
+
 void dump_status();
-void dumpParameters();
-void dumpGroupAddresses();
+void dumpParameter(int i);
+void dumpGroupObject(int i);
 /**
  * @brief Loop until KNX is configured or timeout is reached 
  * 
@@ -46,59 +48,93 @@ void getKNXconfigured()
 
     ia = knx.individualAddress();
     
-    Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
+    Serial.printf("Individual Address: %d.%d.%d [%04x]\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF, ia);
     Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false");
     if( knx.configured()) {
-        dumpParameters();
-        dumpGroupAddresses();
+        dumpParameter(1);
+        dumpGroupObject(1);
     }
 }
 
-void dumpGroupAddresses()
+void dumpGroupObject(int i)
 {
     GroupObject *go;
+    unsigned long b;
+
+    Serial.printf("Group Object:\n");
     
-    Serial.printf("Group Addresses:\n");
-    for (int i = 1; i < 2; i++)
-    {
-        Serial.print("GO %02d\n",i);
-        go = knx.groupObject(i);
+    Serial.printf("GO %02d\n",i);
+    go = &knx.getGroupObject(i);
 
-        Serial.printf(Flags: ");
-        Serial.printf(go->responseUpdateEnable() ? "U" : "-");
-        Serial.printf(go->transmitEnable() ? "T" : "-");
-        Serial.printf(go->readEnable() ? "R" : "-");
-        Serial.printf(go->writeEnable() ? "W" : "-");
-        Serial.printf(go->valueReadOnInit() ? "I" : "-");
-        Serial.printf("valueSize: %d ",go->valueSize());
-        Serial.printf("value: %0*X ", go->valueSize(), go->value());
-        Serial.printf("DPT: %d ",go->dataPointType());
-        Serial.printf("Com Flag: %d \n",go->comFlag());
+    Serial.printf("Flags: ");
+    Serial.printf(go->responseUpdateEnable() ? "U" : "-");
+    Serial.printf(go->transmitEnable() ? "T" : "-");
+    Serial.printf(go->readEnable() ? "R" : "-");
+    Serial.printf(go->writeEnable() ? "W" : "-");
+    Serial.printf(go->valueReadOnInit() ? "I" : "-");
+    Serial.printf("DPT: %02x ",go->dataPointType());
 
-    }
+    Serial.printf("valueSize: %d ",go->valueSize());
+    
+    Serial.printf("%d ", (go->value()));
+        
+    //Serial.printf("value: %0*X ", (2*go->valueSize()), (go->value()));
+    Serial.printf("Com Flag: %d \n",go->commFlag());
 }
 
-void dumpParameters()
+void dumpParameter(int i)
 {
     Serial.printf("Parameters:\n");
-    for (int i = 0; i < 2; i++)
-    {
-        Serial.print("P%02d: %2X\n",i,knx.parameterByte(i));
-    }
+    
+    Serial.printf("P%02d: %2X\n",i,knx.paramByte(i));
+    
 }
 
-void dump_status()
+void dumpPG()
 {
-    byte b = SerialDBG.read();
+
+    byte b = Serial.read();
+    static char mode='P';
+
+
     switch (b)
     {
     case 'P':
-        dumpParameters();
+        Serial.println("[1..9] for Parameter 1..9");
+        mode = 'P';
+        Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
+
         break;
     case 'G':
-        dumpGroupAddresses();
+        Serial.println("[1..9] for GroupObject 1..9");
+        mode = 'G';
+        Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
+
         break;
-} 
+    case 'T':
+        knx.toggleProgMode();
+        knx.loop();
+        Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
+        break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        if (mode == 'P' )
+            dumpParameter(b-'0');
+        else
+            dumpGroupObject(b-'0');
+        break;
+    default:
+        Serial.println("[P] parameters [G] groupObject [T] toggleProgMode");
+
+    }
+
 }
 /**
  * @brief HiJack the Arduino setup() function
@@ -163,11 +199,11 @@ void loop()
 {
     knx.loop();
     
-    if( DUE(httpHandle)) httpServer.handleClient();
+    // if( DUE(httpHandle)) httpServer.handleClient();
 
-    if (Serial.available()) dump_status();
+    if (Serial.available()) dumpPG();
 
-    if(!knx.configured() || knx.progMode()) return;
+    if(!knx.configured() ) return;
 
     otaLoop();
     knx.loop();

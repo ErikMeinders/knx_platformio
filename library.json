@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A platform for building KNX applications for arduino",
   "keywords": "knx, platformio",
   "repository":
@@ -25,10 +25,9 @@
   ],
   "export" : {
     "include": [
-      "lib/**",
-      "include/**",
-      "library.json",
-      "knx_platformio.h"
+      "src/knxp_*",
+      "include/knxp_*",
+      "library.json"
     ]
   },
   "dependencies": {

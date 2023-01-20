@@ -2,9 +2,6 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"path": "../knx_platformio_example"
 		}
 	],
 	"settings": {}
