@@ -1,4 +1,5 @@
 #include "knxp_platformio.h"
+#include <EEPROM.h>
 
 /* To Be Implemented in Your Application */
 
@@ -10,9 +11,8 @@ char *knxapp_hostname();
 
 WebServer httpServer;
 
-void dump_status();
-void dumpParameter(int i);
-void dumpGroupObject(int i);
+
+
 /**
  * @brief Loop until KNX is configured or timeout is reached 
  * 
@@ -90,15 +90,36 @@ void dumpParameter(int i)
     
 }
 
-void dumpPG()
+void dumpEEPROM()
+{
+    Serial.print("0000: ");
+    int i=0;
+    while ( i < EEPROM.length()   )
+    {
+        byte b=EEPROM.read(i);
+        Serial.printf("%02X [%c]", b, b >= 32  && b <= 127 ? b : ' ');
+        i++;
+        if (i % 16 == 0 )
+        { 
+            Serial.println();
+            if ( i < EEPROM.length())
+                Serial.printf("%04X: ", i);
+        }
+    }
+}
+
+void knxpMenu()
 {
 
     byte b = Serial.read();
     static char mode='P';
-
-
+    uint16_t ia = knx.individualAddress();
+    
     switch (b)
     {
+    case 'E':
+        dumpEEPROM();
+        break;
     case 'P':
         Serial.println("[1..9] for Parameter 1..9");
         mode = 'P';
@@ -114,7 +135,9 @@ void dumpPG()
     case 'T':
         knx.toggleProgMode();
         knx.loop();
-        Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
+        Serial.printf("Programming mode %s\n", mode, knx.progMode() ? "Enabled" : "Disabled");
+        Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
+        Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false"); 
         break;
     case '1':
     case '2':
@@ -194,14 +217,11 @@ void setup()
  * Do not continue with application loop until KNX is ready and not in programming mode
  * 
  */
-DECLARE_TIMERms(httpHandle, 250);
 void loop()
 {
     knx.loop();
     
-    // if( DUE(httpHandle)) httpServer.handleClient();
-
-    if (Serial.available()) dumpPG();
+    if (Serial.available()) knxpMenu();
 
     if(!knx.configured() ) return;
 

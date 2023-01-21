@@ -20,3 +20,8 @@
 
 void setup();
 void loop();
+
+void knxpMenu();
+void dumpEEPROM();
+void dumpParameter(int i);
+void dumpGroupObject(int i);
