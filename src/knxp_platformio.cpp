@@ -63,15 +63,17 @@ void dumpGroupObject(int i)
 
     Serial.printf("Group Object:\n");
     
-    Serial.printf("GO %02d\n",i);
+    Serial.printf("GO %02d ",i);
     go = &knx.getGroupObject(i);
 
     Serial.printf("Flags: ");
-    Serial.printf(go->responseUpdateEnable() ? "U" : "-");
-    Serial.printf(go->transmitEnable() ? "T" : "-");
+    Serial.printf(go->communicationEnable() ? "C" : "-");
     Serial.printf(go->readEnable() ? "R" : "-");
     Serial.printf(go->writeEnable() ? "W" : "-");
+    Serial.printf(go->transmitEnable() ? "T" : "-");
+    Serial.printf(go->responseUpdateEnable() ? "U" : "-");
     Serial.printf(go->valueReadOnInit() ? "I" : "-");
+
     Serial.printf("DPT: %02x ",go->dataPointType());
 
     Serial.printf("valueSize: %d ",go->valueSize());
@@ -113,21 +115,31 @@ void knxpMenu()
 
     byte b = Serial.read();
     static char mode='P';
+    static int base=0;
     uint16_t ia = knx.individualAddress();
     
     switch (b)
     {
+    case '0' : base=0;
+        Serial.println("Base 0");
+        break;
+    case 'a' : base=10;
+        Serial.println("Base 10");
+        break;
+    case 'b' : base=20;
+        Serial.println("Base 20");
+        break;
     case 'E':
         dumpEEPROM();
         break;
     case 'P':
-        Serial.println("[1..9] for Parameter 1..9");
+        Serial.printf("[1..9] for Parameter %1d1..%1d9",base/10,base/10);
         mode = 'P';
         Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
 
         break;
     case 'G':
-        Serial.println("[1..9] for GroupObject 1..9");
+        Serial.printf("[1..9] for GroupObject %1d1..%1d9",base/10,base/10);
         mode = 'G';
         Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
 
@@ -135,7 +147,7 @@ void knxpMenu()
     case 'T':
         knx.toggleProgMode();
         knx.loop();
-        Serial.printf("Programming mode %s\n", mode, knx.progMode() ? "Enabled" : "Disabled");
+        Serial.printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
         Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
         Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false"); 
         break;
@@ -149,12 +161,12 @@ void knxpMenu()
     case '8':
     case '9':
         if (mode == 'P' )
-            dumpParameter(b-'0');
+            dumpParameter(b-'0'+base);
         else
-            dumpGroupObject(b-'0');
+            dumpGroupObject(b-'0'+base);
         break;
     default:
-        Serial.println("[P] parameters [G] groupObject [T] toggleProgMode");
+        Serial.println("[P] parameters [G] groupObject [T] toggleProgMode [0ab] base");
 
     }
 
