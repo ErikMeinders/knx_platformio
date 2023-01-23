@@ -61,7 +61,7 @@ void dumpGroupObject(int i)
     GroupObject *go;
     unsigned long b;
 
-    Serial.printf("Group Object:\n");
+    if( i == 0 ) return;
     
     Serial.printf("GO %02d ",i);
     go = &knx.getGroupObject(i);
@@ -74,20 +74,19 @@ void dumpGroupObject(int i)
     Serial.printf(go->responseUpdateEnable() ? "U" : "-");
     Serial.printf(go->valueReadOnInit() ? "I" : "-");
 
-    Serial.printf("DPT: %02x ",go->dataPointType());
+    Serial.printf(" DPT: [%02x] ",go->dataPointType());
 
     Serial.printf("valueSize: %d ",go->valueSize());
     
     Serial.printf("%d ", (go->value()));
         
-    //Serial.printf("value: %0*X ", (2*go->valueSize()), (go->value()));
     Serial.printf("Com Flag: %d \n",go->commFlag());
 }
 
 void dumpParameter(int i)
 {
-    Serial.printf("Parameters:\n");
-    
+    if( i == 0 ) return;
+
     Serial.printf("P%02d: %2X\n",i,knx.paramByte(i));
     
 }
@@ -110,6 +109,13 @@ void dumpEEPROM()
     }
 }
 
+void help()
+{
+    Serial.printf("GO size: %d\n", sizeof(GroupObject));
+    // Serial.printf("P size: %d\n", sizeof(Parameter));
+    Serial.printf("EEPROM size: %d\n", EEPROM.length());
+}
+
 void knxpMenu()
 {
 
@@ -118,31 +124,40 @@ void knxpMenu()
     static int base=0;
     uint16_t ia = knx.individualAddress();
     
+    char basechar = base/10 + '0';
+    char basestart = base == 0 ? '1' : '0';
+
     switch (b)
     {
-    case '0' : base=0;
-        Serial.println("Base 0");
+    case '?' : help();
+        break;
+    case 'z' : base=0;
+        Serial.printf("Base 00 [1..9] for %s [1..9]\n", mode == 'P' ? "Parameter" : "GroupObject");
         break;
     case 'a' : base=10;
-        Serial.println("Base 10");
+        Serial.printf("Base 10 [0..9] for %s [10..19]\n", mode == 'P' ? "Parameter" : "GroupObject");
         break;
     case 'b' : base=20;
-        Serial.println("Base 20");
+        Serial.printf("Base 20 [0..9] for %s [20..29]\n", mode == 'P' ? "Parameter" : "GroupObject");
         break;
     case 'E':
         dumpEEPROM();
         break;
     case 'P':
-        Serial.printf("[1..9] for Parameter %1d1..%1d9",base/10,base/10);
+        base = 0;
+        basechar = base/10 + '0';
+        basestart = base == 0 ? '1' : '0';
         mode = 'P';
+        Serial.printf("[%c..9] for GroupObject %c%c..%c9 | ", basestart, basechar, basestart, basechar) ;
         Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
-
         break;
     case 'G':
-        Serial.printf("[1..9] for GroupObject %1d1..%1d9",base/10,base/10);
+        base=0;
+        basechar = base/10 + '0';
+        basestart = base == 0 ? '1' : '0';
         mode = 'G';
+        Serial.printf("[%c..9] for GroupObject %c%c..%c9 | ", basestart, basechar, basestart, basechar) ;
         Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
-
         break;
     case 'T':
         knx.toggleProgMode();
@@ -151,6 +166,7 @@ void knxpMenu()
         Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
         Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false"); 
         break;
+    case '0':
     case '1':
     case '2':
     case '3':
@@ -166,7 +182,7 @@ void knxpMenu()
             dumpGroupObject(b-'0'+base);
         break;
     default:
-        Serial.println("[P] parameters [G] groupObject [T] toggleProgMode [0ab] base");
+        Serial.println("[P] parameters [G] groupObject [T] toggleProgMode [E] EEPROM [abz] base [0..9] dump [?] help");
 
     }
 
@@ -235,7 +251,7 @@ void loop()
     
     if (Serial.available()) knxpMenu();
 
-    if(!knx.configured() ) return;
+    if(!knx.configured() || knx.progMode()) return;
 
     otaLoop();
     knx.loop();
