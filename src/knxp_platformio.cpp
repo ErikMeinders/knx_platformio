@@ -11,49 +11,35 @@ char *knxapp_hostname();
 
 WebServer httpServer;
 
-
-
 /**
- * @brief Loop until KNX is configured or timeout is reached 
+ * @brief Loop until KNX is configured 
  * 
  */
-void getKNXconfigured()
+void knxapp_init()
 {
+
+    knx.readMemory();
     uint16_t ia = knx.individualAddress();
-    time_t configstart = millis();
-    
+
     Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
     Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false");
 
-    Serial.printf("Waiting for KNX to be configured (%d seconds in prog mode)\n", PROGMODE_TIMEOUT/1000);
-
-    // if(knx.individualAddress() == 0xFFFF) 
-
-    knx.progMode(true);
-    knx.loop();
-
-    while( !knx.configured())
+    if (!knx.configured())
     {
-        knx.loop();
-        if (millis() > PROGMODE_TIMEOUT + configstart && knx.progMode() ){
-           
-            Serial.printf("Timeout, exiting prog mode\n");
-            break;
-        }
-        delay(5);
-    }
-    delay(50);
-    knx.progMode(false);
-    knx.loop();
+        Serial.printf("Waiting for KNX to be configured \n");
 
-    ia = knx.individualAddress();
-    
-    Serial.printf("Individual Address: %d.%d.%d [%04x]\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF, ia);
-    Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false");
-    if( knx.configured()) {
-        dumpParameter(1);
-        dumpGroupObject(1);
+        knx.start();
+        while(!knx.configured())
+        {
+            if (Serial.available()) knxpMenu();
+
+            knx.loop();
+            
+        }
+        //knx.stop();
+        ESP.restart();
     }
+    
 }
 
 void dumpGroupObject(int i)
@@ -78,7 +64,7 @@ void dumpGroupObject(int i)
 
     Serial.printf("valueSize: %d ",go->valueSize());
     
-    Serial.printf("%d ", (go->value()));
+    Serial.printf("%02x ", go->value());
         
     Serial.printf("Com Flag: %d \n",go->commFlag());
 }
@@ -148,7 +134,7 @@ void knxpMenu()
         basechar = base/10 + '0';
         basestart = base == 0 ? '1' : '0';
         mode = 'P';
-        Serial.printf("[%c..9] for GroupObject %c%c..%c9 | ", basestart, basechar, basestart, basechar) ;
+        Serial.printf("[%c..9] for Parameter %c%c..%c9 | ", basestart, basechar, basestart, basechar) ;
         Serial.printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
         break;
     case 'G':
@@ -206,35 +192,26 @@ void setup()
     knxapp_report(step++, "Starting NTP");
     timeInit();
 
-    knxapp_report(step++, "Starting KNX");
-    
-    knx.readMemory();
-    knx.start();
-
     knxapp_report(step++, "Starting KNX configuration");
-    getKNXconfigured();
+    knxapp_init();
     
-    knx.loop();
-
     knxapp_report(step++, "Starting MDNS");
     startMDNS(knxapp_hostname());
-    knx.loop();
 
     knxapp_report(step++, "Starting OTA");
     otaInit();
-    knx.loop();
 
     knxapp_report(step++, "Starting Webserver");
     httpServer.begin();
-    knx.loop();
 
     knxapp_report(step++, "Starting Telnet");
     startTelnet();
-    knx.loop();
 
-    knxapp_report(step++, "Starting KNX Application");
+    knxapp_report(step++, "Starting KNX Application Setup");
     knxapp_setup();
-    knx.loop();
+    
+    knxapp_report(step++, "Starting KNX");
+    knx.start();
 
     resetUptime();
     Debugf("-- [%s] Startup completed in %d ms.\n\n", timeNowString(), millis());
@@ -251,7 +228,7 @@ void loop()
     
     if (Serial.available()) knxpMenu();
 
-    if(!knx.configured() || knx.progMode()) return;
+    if(knx.progMode()) return;
 
     otaLoop();
     knx.loop();
