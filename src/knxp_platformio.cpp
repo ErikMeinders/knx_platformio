@@ -8,6 +8,7 @@ void knxapp_report(int step, const char *msg);
 void knxapp_setup();
 void knxapp_loop();
 char *knxapp_hostname();
+void knxapp_status();
 
 WebServer httpServer;
 
@@ -97,9 +98,13 @@ void dumpEEPROM()
 
 void help()
 {
-    Serial.printf("GO size: %d\n", sizeof(GroupObject));
-    // Serial.printf("P size: %d\n", sizeof(Parameter));
+    uint16_t ia = knx.individualAddress();
+    
     Serial.printf("EEPROM size: %d\n", EEPROM.length());
+    Serial.printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
+    Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
+    Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false"); 
+    Serial.println("[P] parameters [G] groupObject [T] toggleProgMode [E] EEPROM [abz] base [0..9] dump [?] help");
 }
 
 void knxpMenu()
@@ -148,9 +153,7 @@ void knxpMenu()
     case 'T':
         knx.toggleProgMode();
         knx.loop();
-        Serial.printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
-        Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
-        Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false"); 
+        help();       
         break;
     case '0':
     case '1':
@@ -166,6 +169,9 @@ void knxpMenu()
             dumpParameter(b-'0'+base);
         else
             dumpGroupObject(b-'0'+base);
+        break;
+    case 'S' :
+        knxapp_status();
         break;
     default:
         Serial.println("[P] parameters [G] groupObject [T] toggleProgMode [E] EEPROM [abz] base [0..9] dump [?] help");

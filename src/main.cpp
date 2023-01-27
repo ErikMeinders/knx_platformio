@@ -13,6 +13,12 @@ void knxapp_setup() {
   Debugln(">> YOUR CODE SETUP DONE << ");
 }
 
+void knxapp_status()
+{
+  // put your status code here, to run repeatedly:
+  Debugln(">> YOUR CODE STATUS << ");
+}
+
 void knxapp_loop() {
 
   // put your main code here, to run repeatedly:
