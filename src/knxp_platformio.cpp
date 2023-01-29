@@ -1,47 +1,13 @@
 #include "knxp_platformio.h"
 #include <EEPROM.h>
 
-/* To Be Implemented in Your Application */
-
-void knxapp_pinsetup();
-void knxapp_report(int step, const char *msg);
-void knxapp_setup();
-void knxapp_loop();
-char *knxapp_hostname();
-void knxapp_status();
-
 WebServer httpServer;
 
 /**
  * @brief Loop until KNX is configured 
  * 
  */
-void knxapp_init()
-{
 
-    knx.readMemory();
-    uint16_t ia = knx.individualAddress();
-
-    Serial.printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
-    Serial.printf("Configured: %s\n", knx.configured() ? "true" : "false");
-
-    if (!knx.configured())
-    {
-        Serial.printf("Waiting for KNX to be configured \n");
-
-        knx.start();
-        while(!knx.configured())
-        {
-            if (Serial.available()) knxpMenu();
-
-            knx.loop();
-            
-        }
-        //knx.stop();
-        ESP.restart();
-    }
-    
-}
 
 void dumpGroupObject(int i)
 {
@@ -171,7 +137,7 @@ void knxpMenu()
             dumpGroupObject(b-'0'+base);
         break;
     case 'S' :
-        knxapp_status();
+        knxApp.status();
         break;
     default:
         Serial.println("[P] parameters [G] groupObject [T] toggleProgMode [E] EEPROM [abz] base [0..9] dump [?] help");
@@ -189,34 +155,34 @@ void setup()
     int step=0;
     Serial.begin(115200);
     
-    knxapp_report(step++, "Starting pin setup");
-    knxapp_pinsetup();
+    knxApp.progress(step++, "Starting pin setup");
+    knxApp.pinsetup();
 
-    knxapp_report(step++, "Starting WiFi");
-    startWiFi(knxapp_hostname());
+    knxApp.progress(step++, "Starting WiFi");
+    startWiFi(knxApp.hostname());
 
-    knxapp_report(step++, "Starting NTP");
+    knxApp.progress(step++, "Starting NTP");
     timeInit();
 
-    knxapp_report(step++, "Starting KNX configuration");
-    knxapp_init();
+    knxApp.progress(step++, "Starting KNX configuration");
+    knxApp.conf();
     
-    knxapp_report(step++, "Starting MDNS");
-    startMDNS(knxapp_hostname());
+    knxApp.progress(step++, "Starting MDNS");
+    startMDNS(knxApp.hostname());
 
-    knxapp_report(step++, "Starting OTA");
+    knxApp.progress(step++, "Starting OTA");
     otaInit();
 
-    knxapp_report(step++, "Starting Webserver");
+    knxApp.progress(step++, "Starting Webserver");
     httpServer.begin();
 
-    knxapp_report(step++, "Starting Telnet");
+    knxApp.progress(step++, "Starting Telnet");
     startTelnet();
 
-    knxapp_report(step++, "Starting KNX Application Setup");
-    knxapp_setup();
+    knxApp.progress(step++, "Starting KNX Application Setup");
+    knxApp.setup();
     
-    knxapp_report(step++, "Starting KNX");
+    knxApp.progress(step++, "Starting KNX");
     knx.start();
 
     resetUptime();
@@ -245,6 +211,6 @@ void loop()
     httpServer.handleClient();
     knx.loop();
 
-    timeThis ( knxapp_loop() );
+    timeThis ( knxApp.loop() );
     knx.loop();
 }
