@@ -7,19 +7,19 @@
    Includes times when USE_NTP_TIME is configured
 
 */
-#include "knxp_debug.h"
+#include "Debug.h"
 
 Stream *dbgOut = &Serial;
 
 void _debugBOL(const char *fn, int line)
 {
 
-  char _bol[30];
+  char _bol[64];
 
   struct tm tInfo;
   time_t now;
 
-  return;     // disable for now
+  // return;     // disable for now
   time(&now); // read the current time
 
   if (localtime_r(&now, &tInfo) != NULL)

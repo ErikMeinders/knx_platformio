@@ -12,10 +12,7 @@ class _knxapp {
     virtual void status();
     virtual void progress(int step, const char *msg);
 
-    void knxpMenu();
-
-    Stream *stdIn = &Serial;
-    Stream *stdOut = &Serial;
+    void menu();
 
   private:
     void help();

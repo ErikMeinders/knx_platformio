@@ -9,17 +9,16 @@
 ***************************************************************************      
 */
 
-#include "knxp_network.h"
-
+#include "knxp_platformio.h"
 
 //gets called when WiFiManager enters configuration mode
 //===========================================================================================
 void configModeCallback (WiFiManager *myWiFiManager)  
 {
-  DebugTln("Entered config mode\r");
-  DebugTln(WiFi.softAPIP().toString());
+  Log.trace("Entered config mode\n");
+  Log.info("%s\n", WiFi.softAPIP().toString());
   //if you used auto generated SSID, print it
-  DebugTln(myWiFiManager->getConfigPortalSSID());
+  Log.info("%s\n", myWiFiManager->getConfigPortalSSID());
 
 } // configModeCallback()
 
@@ -46,14 +45,14 @@ void startWiFi(const char *Hostname)
   //--here  "FloorTempMonitor-<MAC>"
   //--and goes into a blocking loop awaiting configuration
   if (!manageWiFi.autoConnect(thisAP.c_str())) {
-    DebugTln("failed to connect and hit timeout");
+    Log.fatal("failed to connect and hit timeout\n");
 
     //reset and try again, or maybe put it to deep sleep
     ESP.restart();
     delay(2000);
   }
 
-  DebugTf("Connected with IP-address [%s]\r\n\r\n", WiFi.localIP().toString().c_str());
+  Log.info("Connected with IP-address [%s]\n", WiFi.localIP().toString().c_str());
 
 } // startWiFi()
 
@@ -62,20 +61,23 @@ void startWiFi(const char *Hostname)
 void startTelnet() 
 {
   TelnetStream.begin();
-  DebugTln("Telnet server started ..");
+  Log.trace("Telnet server started ..");
   TelnetStream.flush();
-
+#ifdef STDIO_TELNET
+  stdIn = &TelnetStream;
+  stdOut = &TelnetStream;
+#endif
 } // startTelnet()
 
 
 //=======================================================================
 void startMDNS(const char *Hostname) 
 {
-  DebugTf("[1] mDNS setup as [%s.local]\r\n", Hostname);
+  Log.info("mDNS setup as [%s.local]\r\n", Hostname);
   if (MDNS.begin(Hostname)) {              // Start the mDNS responder for Hostname.local
-    DebugTf("[2] mDNS responder started as [%s.local]\r\n", Hostname);
+    Log.trace("mDNS responder started as [%s.local]\r\n", Hostname);
   } else {
-    DebugTln("[3] Error setting up MDNS responder!\r\n");
+    Log.error("Error setting up MDNS responder!\r\n");
   }
   MDNS.addService("http", "tcp", 80);
   

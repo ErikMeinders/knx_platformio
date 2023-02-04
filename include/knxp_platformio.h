@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <ArduinoLog.h>
+
 #include <EEPROM.h>
 
 #include <knxp_espcompat.h>
@@ -17,8 +19,6 @@
 
 #include "knxapp.h"
 
-extern Stream *stdIn;
-extern Stream *stdOut;
 
 void setup();
 void loop();
@@ -26,3 +26,10 @@ void loop();
 #ifndef HOSTNAME
 #define HOSTNAME "knx_device"
 #endif
+
+#define Print(...)      { stdOut->print(__VA_ARGS__); }
+#define Printf(...)     { stdOut->printf(__VA_ARGS__); }
+#define Println(...)    { stdOut->println(__VA_ARGS__); }
+
+extern Stream *stdIn;
+extern Stream *stdOut;

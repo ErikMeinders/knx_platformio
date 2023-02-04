@@ -1,195 +1,227 @@
-
 #include <knxp_platformio.h>
 
-DECLARE_TIMER( YourCodeShoutOut, 5 );
+DECLARE_TIMER(BaseCodeShoutOut, 5);
 
 void _knxapp::pinsetup()
 {
-  // put your pin setup code here, to run once before platform setup:
+    // put your pin setup code here, to run once before platform setup:
 
-  // pin or GPIO the programming led is connected to. Default is LED_BUILTIN
-    knx.ledPin(2);
+    // pin or GPIO the programming led is connected to. Default is LED_BUILTIN
+    knx.ledPin(LED_BUILTIN);
 
     // is the led active on HIGH or low? Default is LOW
-    knx.ledPinActiveOn(HIGH);
-
+    knx.ledPinActiveOn(LED_BUILTIN_ON);
+   
     // pin or GPIO programming button is connected to. Default is 0
     knx.buttonPin(27);
 
-    stdOut->printf("Button pin: %d\n", knx.buttonPin());
-
+    Log.info("Button pin: %d\n", knx.buttonPin());
 }
 
 void _knxapp::conf()
 {
-
     knx.readMemory();
     uint16_t ia = knx.individualAddress();
 
-    stdOut->printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
-    stdOut->printf("Configured: %s\n", knx.configured() ? "true" : "false");
+    Log.info("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
+    Log.info("Configured: %s\n", knx.configured() ? "true" : "false");
 
     if (!knx.configured())
     {
-        stdOut->printf("Waiting for KNX to be configured \n");
+        Log.trace("Waiting for KNX to be configured \n");
 
         knx.start();
-        while(!knx.configured())
+        while (!knx.configured())
         {
-            if (Serial.available()) knxpMenu();
+            if (stdIn->available())
+                menu();
 
             knx.loop();
-            
         }
-        //knx.stop();
+        // knx.stop();
         ESP.restart();
     }
-    
 }
 
 void _knxapp::setup()
 {
-  Debugln(">> YOUR CODE SETUP START<< ");
+    Println(">> BASE CODE SETUP START -- OVERRIDE THIS ! << ");
 
-  Debugln(">> YOUR CODE SETUP DONE << ");
+    Println(">> BASE CODE SETUP DONE << ");
 }
 
-void _knxapp::loop() 
+void _knxapp::loop()
 {
-  if (DUE(YourCodeShoutOut ))
+    if (DUE(BaseCodeShoutOut))
 
-    Debugln(">> YOUR CODE LOOP << ");
+        Println(">> BASE CODE LOOP -- OVERRIDE THIS << ");
 }
 
 void _knxapp::status()
 {
-  Debugln(">> YOUR CODE STATUS << ");
-}
-
-char * _knxapp::hostname()
-{
-  return (char*) ( HOSTNAME ) ;
-}
-
-void _knxapp::progress(int a, const char*b)
-{
-  stdOut->printf(">> Startup step [%02d]: %s\n", a, b);
-}
-
-
-void _knxapp::help()
-{
-    uint16_t ia = knx.individualAddress();
+    Log.trace(">> BASE CODE STATUS << ");
     
-    stdOut->printf("EEPROM size: %d\n", EEPROM.length());
-    stdOut->printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
-    stdOut->printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
-    stdOut->printf("Configured: %s\n", knx.configured() ? "true" : "false"); 
-    stdOut->println("[P] parameters [G] groupObject [T] toggleProgMode [E] EEPROM [abz] base [0..9] dump [?] help");
+    uint16_t ia = knx.individualAddress();
+
+    Printf("EEPROM size: %d\n", EEPROM.length());
+    Printf("Configured: %s\n", knx.configured() ? "true" : "false");
+    Printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
+    Printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
+    Printf("Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
+    Printf("IP: %s\n", WiFi.localIP().toString().c_str());
+#ifdef ESP8266
+    Printf("Last reset reason: %s\n", ESP.getResetReason().c_str());
+#endif
+}
+
+char *_knxapp::hostname()
+{
+    return (char *)(HOSTNAME);
+}
+
+void _knxapp::progress(int nr, const char *text)
+{
+    Log.trace(">> Startup step [%d]: %s\n", nr, text);
 }
 
 void _knxapp::dumpParameter(int i)
 {
-    stdOut->printf("P%02d: %2X\n",i,knx.paramByte(i));   
+    Printf("P%02d: %2X\n", i, knx.paramByte(i));
 }
-
 
 void _knxapp::dumpGroupObject(int i)
 {
     GroupObject *go;
 
-    if( i == 0 ) return;
-    
-    stdOut->printf("GO %02d ",i);
+    if (i == 0)
+        return;
+
+    Printf("GO %02d ", i);
     go = &knx.getGroupObject(i);
 
-    stdOut->printf("Flags: ");
-    stdOut->printf(go->communicationEnable() ? "C" : "-");
-    stdOut->printf(go->readEnable() ? "R" : "-");
-    stdOut->printf(go->writeEnable() ? "W" : "-");
-    stdOut->printf(go->transmitEnable() ? "T" : "-");
-    stdOut->printf(go->responseUpdateEnable() ? "U" : "-");
-    stdOut->printf(go->valueReadOnInit() ? "I" : "-");
+    Printf("Flags: ");
+    Printf(go->communicationEnable() ? "C" : "-");
+    Printf(go->readEnable() ? "R" : "-");
+    Printf(go->writeEnable() ? "W" : "-");
+    Printf(go->transmitEnable() ? "T" : "-");
+    Printf(go->responseUpdateEnable() ? "U" : "-");
+    Printf(go->valueReadOnInit() ? "I" : "-");
 
-    stdOut->printf(" DPT: [%04x][%04x] ", go->dataPointType().mainGroup, go->dataPointType().subGroup);
+    Printf(" DPT: [%04x][%04x] ", go->dataPointType().mainGroup, go->dataPointType().subGroup);
 
-    stdOut->printf("valueSize: %d ",go->valueSize());
-    
-    stdOut->printf("%02x ", (uint8_t) go->value());
-        
-    stdOut->printf("Com Flag: %d \n",go->commFlag());
+    Printf("valueSize: %d ", go->valueSize());
+
+    Printf("%02x ", (uint8_t)go->value());
+
+    Printf("Com Flag: %d \n", go->commFlag());
 }
-
 
 void _knxapp::dumpEEPROM()
 {
-    stdOut->print("0000: ");
-    size_t i=0;
+    Print("0000: ");
+    size_t i = 0;
 
-    while ( i < EEPROM.length()   )
+    while (i < EEPROM.length())
     {
-        byte b=EEPROM.read(i);
-        stdOut->printf("%02X [%c]", b, b >= 32  && b <= 127 ? b : ' ');
-        i++;
-        if (i % 16 == 0 )
-        { 
-            stdOut->println();
-            if ( i < EEPROM.length())
-                stdOut->printf("%04X: ", i);
+        byte b = EEPROM.read(i);
+        
+        Printf("[%02X] %c ", b, b >= 32 && b <= 127 ? b : ' ');
+
+        if (++i % 16 == 0)
+        {
+            Println();
+            if (i < EEPROM.length())
+                Printf("%04X: ", i);
+            delay(10);
         }
+        
     }
 }
 
+// static char menuLine[]="[E] EEPROM [P] parameters [G] groupObject [V] Verbosity [T] toggleProgMode [S] Status [abcz] base [0..9] dump [?] help\n";
 
-void _knxapp::knxpMenu()
+void submenuline(char mode, int base)
+{
+    char first = (base == 0 ? '1' : '0');
+
+    switch(mode)
+    {
+    case 'P':
+        Printf("[0..9] for Parameter [%c0..%c9]\n", base/10+'0', base/10+'0');
+        break;
+    case 'G':
+        Printf("[%c..9] for GroupObject [%c%c..%c9]\n", 
+            first, base/10+'0', first, base/10+'0');
+        break;
+    case 'V':
+        Printf("[0..6] to set Log Verbosity level\n");
+        break;
+    
+    }
+}
+
+void _knxapp::menu()
 {
 
     byte b = stdIn->read();
+    char valid[] = "?zabcPGESTV0123456789";
 
-    if ( b == '\n' || b == 0 ) return;
-    
-    static char mode='P';
-    static int base=0;
-    
-    char basechar = base/10 + '0';
-    char basestart = base == 0 ? '1' : '0';
+    while ( strchr(valid,b) == NULL )
+    {
+        if(stdIn->available())
+            b = stdIn->read();
+        else
+            return;
+    } 
+
+    static char mode = 'P';
+    static int base = 0;
 
     switch (b)
     {
-    case '?' : help();
+    case '?':
+        help();
         break;
-    case 'z' : base=0;
-        stdOut->printf("Base 00 [1..9] for %s [1..9]\n", mode == 'P' ? "Parameter" : "GroupObject");
+    case 'z':
+        base = 0;
+        submenuline(mode,base);
         break;
-    case 'a' : base=10;
-        stdOut->printf("Base 10 [0..9] for %s [10..19]\n", mode == 'P' ? "Parameter" : "GroupObject");
+    case 'a':
+        base = 10;
+        submenuline(mode,base);
         break;
-    case 'b' : base=20;
-        stdOut->printf("Base 20 [0..9] for %s [20..29]\n", mode == 'P' ? "Parameter" : "GroupObject");
+    case 'b':
+        base = 20;
+        submenuline(mode,base);
+        break;
+    case 'c':
+        base = 30;
+        submenuline(mode,base);
         break;
     case 'E':
         dumpEEPROM();
         break;
-    case 'P':
+    case 'G': // starts at 1
         base = 0;
-        basechar = base/10 + '0';
-        basestart = base == 0 ? '1' : '0';
-        mode = 'P';
-        stdOut->printf("[%c..9] for Parameter %c%c..%c9 | ", basestart, basechar, basestart, basechar) ;
-        stdOut->printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
-        break;
-    case 'G':
-        base=0;
-        basechar = base/10 + '0';
-        basestart = base == 0 ? '1' : '0';
         mode = 'G';
-        stdOut->printf("[%c..9] for GroupObject %c%c..%c9 | ", basestart, basechar, basestart, basechar) ;
-        stdOut->printf("Display Mode %c | Programming mode %c\n", mode, knx.progMode() ? 'E' : 'D');
+        submenuline(mode, base);
+        break;
+    case 'P': // starts at 0
+        base = 0;
+        mode = 'P';
+        submenuline(mode, base);
+        break;
+    case 'S':
+        knxApp.status();
         break;
     case 'T':
         knx.toggleProgMode();
         knx.loop();
-        help();       
+        break;
+    case 'V':
+        base = 0;
+        mode = 'V';
+        submenuline(mode, base);
         break;
     case '0':
     case '1':
@@ -201,18 +233,60 @@ void _knxapp::knxpMenu()
     case '7':
     case '8':
     case '9':
-        if (mode == 'P' )
-            dumpParameter(b-'0'+base);
-        else
-            dumpGroupObject(b-'0'+base);
-        break;
-    case 'S' :
-        knxApp.status();
+        switch(mode) 
+        {
+        case 'P':
+            dumpParameter(b - '0' + base);
+            break; 
+        case 'G':
+            dumpGroupObject(b - '0' + base);
+            break;
+        case 'V':
+            if( b - '0' < 7 && b - '0' >= 0)
+                Log.setLevel(b - '0');
+            switch(b - '0')
+            {
+            case 0:
+                Println("Log level set to SILENT");
+                break;
+            case 1:
+                Println("Log level set to FATAL");
+                break;
+            case 2:
+                Println("Log level set to ERROR");
+                break;
+            case 3:
+                Println("Log level set to WARNING");
+                break;
+            case 4:
+                Println("Log level set to INFO");
+                break;
+            case 5:
+                Println("Log level set to TRACE");
+                break;
+            case 6:
+                Println("Log level set to VERBOSE");
+                break;
+            }
+            break;
+        }
         break;
     default:
-        stdOut->println("[P] parameters [G] groupObject [T] toggleProgMode [E] EEPROM [abz] base [0..9] dump [?] help");
-
+        Log.error("Unknown command [%C] | [%x]\n", b, b);
     }
+}
+
+void _knxapp::help()
+{
+    Println("[E] EEPROM: dump the EEPROM content");
+    Println("[P] Switch to Parameters dump mode");
+    Println("[G] Switch to GroupObject dump mode");
+    Println("[V] Switch to set Verbosity level mode");
+    Println("[T] ToggleProgMode: toggle the programming mode");
+    Println("[S] Status: dump the status of the KNX stack");
+    Println("[abcz] Base: set the 10base for the dump [z=0 a=10 b=20 c=30]");
+    Println("[0..9] Dump: dump the selected Parameter or Group object or set the Verbosity level");
+    Println("[?] Help: print this help");
 }
 
 _knxapp _knxApp;
