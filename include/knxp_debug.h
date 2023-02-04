@@ -12,6 +12,11 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 #include <Arduino.h>
+#include <TelnetStream.h>
+
+extern Stream *dbgOut;
+
+void startDebug();
 
 #ifndef DEBUG_OUT
 
@@ -25,13 +30,11 @@
 
 #else
 
-   #define OUT1            DEBUG_OUT
+   #define Debug(...)      ({ dbgOut->print(__VA_ARGS__); })
+   #define Debugln(...)    ({ dbgOut->println(__VA_ARGS__);})
+   #define Debugf(...)     ({ dbgOut->printf(__VA_ARGS__);})
 
-   #define Debug(...)      ({ OUT1.print(__VA_ARGS__); })
-   #define Debugln(...)    ({ OUT1.println(__VA_ARGS__);})
-   #define Debugf(...)     ({ OUT1.printf(__VA_ARGS__);})
-
-   #define DebugFlush()    ({ OUT1.flush();})
+   #define DebugFlush()    ({ dbgOut->flush();})
 
    void _debugBOL(const char *, int );
 
@@ -45,6 +48,7 @@
                               Debugf(__VA_ARGS__);                \
                            })
 #endif
+
 #endif
 /***************************************************************************
 *

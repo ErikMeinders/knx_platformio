@@ -1,3 +1,6 @@
+#ifndef _KNXP_APP_H
+#define _KNXP_APP_H
+
 class _knxapp {
   public:
     virtual void pinsetup();
@@ -8,16 +11,19 @@ class _knxapp {
     virtual char *hostname();
     virtual void status();
     virtual void progress(int step, const char *msg);
-};
 
-// your application implementation of the _knxapp class methods
+    void knxpMenu();
 
-class knxapp : public _knxapp
-{
-  public:
-    void setup() ;
-    void loop();
+    Stream *stdIn = &Serial;
+    Stream *stdOut = &Serial;
+
+  private:
+    void help();
+    void dumpParameter(int i);
+    void dumpGroupObject(int i);
+    void dumpEEPROM();
 };
 
 extern _knxapp _knxApp;
-extern knxapp knxApp;
+
+#endif  
