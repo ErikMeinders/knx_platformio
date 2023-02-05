@@ -47,7 +47,7 @@ void setup()
     knx.start();
 
     resetUptime();
-    Log.trace("-- [%s] Platform Startup completed in %u ms.\n", timeNowString(), millis());
+    Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
 
 }
 

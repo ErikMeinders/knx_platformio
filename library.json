@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "A platform for building KNX applications for arduino",
   "keywords": "knx, platformio",
   "repository": {
@@ -28,7 +28,7 @@
     ]
   },
   "dependencies": {
-    "profiler": "erikmeinders/profiler@^0.7.0",
+    "profiler": "erikmeinders/profiler@^0.7.4",
     "ArduinoLog": "thijse/ArduinoLog@^1.1.1",
     "TelnetStream": "jandrassy/TelnetStream @ ^1.2.2",
     "knx": "https://github.com/thelsing/knx.git",

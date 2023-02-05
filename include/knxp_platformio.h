@@ -27,7 +27,6 @@ void loop();
 #define HOSTNAME "knx_device"
 #endif
 
-#define Print(...)      { stdOut->print(__VA_ARGS__); }
 #define Printf(...)     { stdOut->printf(__VA_ARGS__); }
 #define Println(...)    { stdOut->println(__VA_ARGS__); }
 

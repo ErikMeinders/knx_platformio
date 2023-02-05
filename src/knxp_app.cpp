@@ -59,7 +59,7 @@ void _knxapp::loop()
 
 void _knxapp::status()
 {
-    Log.trace(">> BASE CODE STATUS << ");
+    Log.trace(">> BASE CODE STATUS << \n");
     
     uint16_t ia = knx.individualAddress();
 
@@ -118,7 +118,7 @@ void _knxapp::dumpGroupObject(int i)
 
 void _knxapp::dumpEEPROM()
 {
-    Print("0000: ");
+    Printf("0000: ");
     size_t i = 0;
 
     while (i < EEPROM.length())
