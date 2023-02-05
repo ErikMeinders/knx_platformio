@@ -68,7 +68,9 @@ void _knxapp::status()
     Printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
     Printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
     Printf("Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
+    Printf("Hostname: %s\n", knxApp.hostname());
     Printf("IP: %s\n", WiFi.localIP().toString().c_str());
+    Printf("Uptime: %s\n", uptime());
 #ifdef ESP8266
     Printf("Last reset reason: %s\n", ESP.getResetReason().c_str());
 #endif

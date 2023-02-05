@@ -30,6 +30,7 @@ void startWiFi(const char *Hostname)
 
   String thisAP = String(Hostname) + "-" + WiFi.macAddress();
   
+  WiFi.hostname(Hostname);
   WiFi.mode(WIFI_STA);
   manageWiFi.setDebugOutput(true);
   
