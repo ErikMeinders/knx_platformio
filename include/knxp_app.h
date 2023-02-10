@@ -9,7 +9,7 @@ class _knxapp {
     virtual void conf();      // unlikely to be overridden
     virtual void setup();
     virtual void loop();
-    virtual void cyclic() {};
+    virtual void cyclic();
 
     virtual char *hostname();
     virtual void status();
@@ -17,6 +17,7 @@ class _knxapp {
 
     void menu();
     void setCyclicTimer(unsigned long interval) { _cyclicKnxTimer_interval = interval * 1000; }
+    void setGroupObjectCount(int count) { _groupObjectCount = count; }
 
   private:
     void help();
@@ -24,7 +25,7 @@ class _knxapp {
     void dumpGroupObject(int i);
     void dumpEEPROM();
 
-    //DECLARE_TIMER(_cyclicTimer, 0);
+    int _groupObjectCount = 0;
 };
 
 extern _knxapp _knxApp;

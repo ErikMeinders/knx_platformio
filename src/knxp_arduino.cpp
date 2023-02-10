@@ -81,9 +81,9 @@ void loop()
     timeThis ( knxApp.loop() );
     knx.loop();
 
-    if( DUE( _cyclicKnxTimer ) ) {
-        knxApp.cyclic();
-        knx.loop();
-    }
+    if( !DUE (_cyclicKnxTimer)) return;
 
+    timeThis( knxApp.cyclic() );
+    knx.loop();
+    
 }

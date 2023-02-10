@@ -1,5 +1,5 @@
-#include <knxp_platformio.h>
-#include "debug.h"
+#include "knxapp.h"
+// #include "debug.h"
 
 DECLARE_TIMER( YourCodeShoutOut, 15);
 
@@ -8,7 +8,9 @@ knxapp knxApp;
 void knxapp::setup()
 {
     Println("Your setup");
+
     setCyclicTimer(5);
+    setGroupObjectCount(18);
 }
 
 unsigned long xx=0;
@@ -33,5 +35,5 @@ void knxapp::status()
 void knxapp::cyclic()
 {
     _knxapp::cyclic();
-    Println("Your cyclic KNX FEEDBACK");
+    Println("Your cyclic");
 }

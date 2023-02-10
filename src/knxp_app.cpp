@@ -11,7 +11,7 @@ void _knxapp::pinsetup()
 
     // is the led active on HIGH or low? Default is LOW
     knx.ledPinActiveOn(LED_BUILTIN_ON);
-   
+
     // pin or GPIO programming button is connected to. Default is 0
     knx.buttonPin(27);
 
@@ -60,7 +60,7 @@ void _knxapp::loop()
 void _knxapp::status()
 {
     Log.trace(">> BASE CODE STATUS << \n");
-    
+
     uint16_t ia = knx.individualAddress();
 
     Printf("EEPROM size: %d\n", EEPROM.length());
@@ -126,7 +126,7 @@ void _knxapp::dumpEEPROM()
     while (i < EEPROM.length())
     {
         byte b = EEPROM.read(i);
-        
+
         Printf("[%02X] %c ", b, b >= 32 && b <= 127 ? b : ' ');
 
         if (++i % 16 == 0)
@@ -136,7 +136,6 @@ void _knxapp::dumpEEPROM()
                 Printf("%04X: ", i);
             delay(10);
         }
-        
     }
 }
 
@@ -146,19 +145,18 @@ void submenuline(char mode, int base)
 {
     char first = (base == 0 ? '1' : '0');
 
-    switch(mode)
+    switch (mode)
     {
     case 'P':
-        Printf("[0..9] for Parameter [%c0..%c9]\n", base/10+'0', base/10+'0');
+        Printf("[0..9] for Parameter [%c0..%c9]\n", base / 10 + '0', base / 10 + '0');
         break;
     case 'G':
-        Printf("[%c..9] for GroupObject [%c%c..%c9]\n", 
-            first, base/10+'0', first, base/10+'0');
+        Printf("[%c..9] for GroupObject [%c%c..%c9]\n",
+               first, base / 10 + '0', first, base / 10 + '0');
         break;
     case 'V':
         Printf("[0..6] to set Log Verbosity level\n");
         break;
-    
     }
 }
 
@@ -168,13 +166,13 @@ void _knxapp::menu()
     byte b = stdIn->read();
     char valid[] = "?zabcPGESTV0123456789";
 
-    while ( strchr(valid,b) == NULL )
+    while (strchr(valid, b) == NULL)
     {
-        if(stdIn->available())
+        if (stdIn->available())
             b = stdIn->read();
         else
             return;
-    } 
+    }
 
     static char mode = 'P';
     static int base = 0;
@@ -186,19 +184,19 @@ void _knxapp::menu()
         break;
     case 'z':
         base = 0;
-        submenuline(mode,base);
+        submenuline(mode, base);
         break;
     case 'a':
         base = 10;
-        submenuline(mode,base);
+        submenuline(mode, base);
         break;
     case 'b':
         base = 20;
-        submenuline(mode,base);
+        submenuline(mode, base);
         break;
     case 'c':
         base = 30;
-        submenuline(mode,base);
+        submenuline(mode, base);
         break;
     case 'E':
         dumpEEPROM();
@@ -235,18 +233,18 @@ void _knxapp::menu()
     case '7':
     case '8':
     case '9':
-        switch(mode) 
+        switch (mode)
         {
         case 'P':
             dumpParameter(b - '0' + base);
-            break; 
+            break;
         case 'G':
             dumpGroupObject(b - '0' + base);
             break;
         case 'V':
-            if( b - '0' < 7 && b - '0' >= 0)
+            if (b - '0' < 7 && b - '0' >= 0)
                 Log.setLevel(b - '0');
-            switch(b - '0')
+            switch (b - '0')
             {
             case 0:
                 Println("Log level set to SILENT");
@@ -289,6 +287,41 @@ void _knxapp::help()
     Println("[abcz] Base: set the 10base for the dump [z=0 a=10 b=20 c=30]");
     Println("[0..9] Dump: dump the selected Parameter or Group object or set the Verbosity level");
     Println("[?] Help: print this help");
+}
+
+GroupObject cGO;
+
+void _knxapp::cyclic()
+{
+    Log.trace("Entering cyclic\n");
+
+    for (int16_t g = 1; g <= _groupObjectCount; g++)
+    {
+        cGO = knx.getGroupObject(g);
+
+        if (cGO.asap() != g)
+        {
+            Log.error("ASAP mismatch %d %d\n", g, cGO.asap());
+            break;
+        }
+
+        Log.info("GO %d FLGS ", g);
+        Log.info("%c%c ", cGO.readEnable() ? 'R' : '-', cGO.communicationEnable() ? 'C' : '-');
+
+        if (cGO.readEnable() && cGO.communicationEnable())
+        {
+                KNXValue v = cGO.value();
+
+                Log.info("cyclic sent");
+
+                cGO.value(v);
+
+                knx.loop();
+                delay(5);
+        
+        }
+        Log.info("\n");
+    }
 }
 
 _knxapp _knxApp;
