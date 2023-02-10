@@ -38,10 +38,12 @@ void startTelnet()
 {
   TelnetStream.begin();
   Log.trace("Telnet server started ..");
-  TelnetStream.flush();
+  // TelnetStream.flush();
 #ifdef STDIO_TELNET
   stdIn = &TelnetStream;
   stdOut = &TelnetStream;
+  Log.begin(LOG_LEVEL_VERBOSE, &TelnetStream);
+
 #endif
 } // startTelnet()
 

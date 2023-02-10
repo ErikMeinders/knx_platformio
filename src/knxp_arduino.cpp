@@ -50,12 +50,6 @@ void setup()
     knxApp.progress(step++, "Starting KNX");
     knx.start();
 
-#ifdef STDIO_TELNET
-    Log.begin(LOG_LEVEL_VERBOSE, &telnetStream);
-    stdIn = &telnetStream;
-    stdOut = &telnetStream;
-#endif
-
     resetUptime();
     Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
 
