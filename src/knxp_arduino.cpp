@@ -5,6 +5,10 @@ WebServer httpServer;
 Stream *stdIn = &Serial;
 Stream *stdOut = &Serial;
 
+#define DECLARE_gTIMER(timerName, timerTime)     unsigned long timerName##_interval = timerTime * 1000,        timerName##_last = millis()+random(timerName##_interval);
+
+DECLARE_gTIMER(_cyclicKnxTimer, 0);
+
 /**
  * @brief HiJack the Arduino setup() function
  * Do not continue with application setup until KNX is ready
@@ -46,6 +50,12 @@ void setup()
     knxApp.progress(step++, "Starting KNX");
     knx.start();
 
+#ifdef STDIO_TELNET
+    Log.begin(LOG_LEVEL_VERBOSE, &telnetStream);
+    stdIn = &telnetStream;
+    stdOut = &telnetStream;
+#endif
+
     resetUptime();
     Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
 
@@ -76,4 +86,10 @@ void loop()
 
     timeThis ( knxApp.loop() );
     knx.loop();
+
+    if( DUE( _cyclicKnxTimer ) ) {
+        knxApp.cyclic();
+        knx.loop();
+    }
+
 }
