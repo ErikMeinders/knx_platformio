@@ -289,38 +289,35 @@ void _knxapp::help()
     Println("[?] Help: print this help");
 }
 
-GroupObject cGO;
-
 void _knxapp::cyclic()
 {
     Log.trace("Entering cyclic\n");
 
     for (int16_t g = 1; g <= _groupObjectCount; g++)
     {
-        cGO = knx.getGroupObject(g);
-
-        if (cGO.asap() != g)
+        if (knx.getGroupObject(g).asap() != g)
         {
-            Log.error("ASAP mismatch %d %d\n", g, cGO.asap());
+            Log.error("ASAP mismatch %d %d\n", g, knx.getGroupObject(g).asap());
             break;
         }
 
         Log.info("GO %d FLGS ", g);
-        Log.info("%c%c ", cGO.readEnable() ? 'R' : '-', cGO.communicationEnable() ? 'C' : '-');
+        Log.info("%c%c ", knx.getGroupObject(g).readEnable() ? 'R' : '-', knx.getGroupObject(g).communicationEnable() ? 'C' : '-');
 
-        if (cGO.readEnable() && cGO.communicationEnable())
+        if (knx.getGroupObject(g).readEnable() && knx.getGroupObject(g).communicationEnable())
         {
-                KNXValue v = cGO.value();
+            KNXValue v = knx.getGroupObject(g).value();
 
-                Log.info("cyclic sent");
+            Log.info("cyclic sent\n");
 
-                cGO.value(v);
+            knx.getGroupObject(g).value(v, knx.getGroupObject(g).dataPointType());
 
-                knx.loop();
-                delay(5);
+            knx.loop();
+            delay(5);
         
+        } else {
+            Log.info("cyclic skipped\n");
         }
-        Log.info("\n");
     }
 }
 

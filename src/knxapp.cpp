@@ -9,8 +9,10 @@ void knxapp::setup()
 {
     Println("Your setup");
 
-    setCyclicTimer(5);
-    setGroupObjectCount(18);
+    setCyclicTimer(15);
+    setGroupObjectCount(1);
+    knx.getGroupObject(1).dataPointType(DPT_Value_Temp);
+    knx.getGroupObject(1).value(22.5);
 }
 
 unsigned long xx=0;
