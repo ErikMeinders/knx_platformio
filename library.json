@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "A platform for building KNX applications for arduino",
   "keywords": "knx, platformio",
   "repository": {
