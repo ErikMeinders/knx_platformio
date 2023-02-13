@@ -25,6 +25,9 @@ class _knxapp {
     void dumpGroupObject(int i);
     void dumpEEPROM();
 
+    void status_8266();
+    void status_32();
+
     int _groupObjectCount = 0;
 };
 

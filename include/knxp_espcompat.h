@@ -1,4 +1,5 @@
-#include <TelnetStream.h>
+#ifndef _KNXP_ESPCOMPAT_H
+#define _KNXP_ESPCOMPAT_H
 
 #ifdef ESP32
 
@@ -9,6 +10,7 @@
 
     #define LED_BUILTIN_ON HIGH
     #define LED_BUILTIN_OFF LOW
+    #define PROGMODE_PIN 27
 
 #endif
 
@@ -23,5 +25,8 @@
 
     #define LED_BUILTIN_ON LOW
     #define LED_BUILTIN_OFF HIGH
+    #define PROGMODE_PIN 27         // probably not!
+
+#endif
 
 #endif

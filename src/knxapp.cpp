@@ -1,5 +1,4 @@
 #include "knxapp.h"
-// #include "debug.h"
 
 DECLARE_TIMER( YourCodeShoutOut, 15);
 
@@ -11,8 +10,9 @@ void knxapp::setup()
 
     setCyclicTimer(15);
     setGroupObjectCount(1);
+
     knx.getGroupObject(1).dataPointType(DPT_Value_Temp);
-    knx.getGroupObject(1).value(22.5);
+    knx.getGroupObject(1).value(19.8);
 }
 
 unsigned long xx=0;
@@ -34,8 +34,3 @@ void knxapp::status()
     Println("Your status");
 }
 
-void knxapp::cyclic()
-{
-    _knxapp::cyclic();
-    Println("Your cyclic");
-}

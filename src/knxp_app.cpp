@@ -1,4 +1,4 @@
-#include <knxp_platformio.h>
+    #include <knxp_platformio.h>
 
 DECLARE_TIMER(BaseCodeShoutOut, 5);
 
@@ -13,7 +13,7 @@ void _knxapp::pinsetup()
     knx.ledPinActiveOn(LED_BUILTIN_ON);
 
     // pin or GPIO programming button is connected to. Default is 0
-    knx.buttonPin(27);
+    knx.buttonPin(PROGMODE_PIN);
 
     Log.info("Button pin: %d\n", knx.buttonPin());
 }
@@ -57,23 +57,67 @@ void _knxapp::loop()
         Println(">> BASE CODE LOOP -- OVERRIDE THIS << ");
 }
 
+void _knxapp::status_8266()
+{
+#ifdef ESP8266
+    // esp8266 specific status
+
+    Printf("ESP8266 STATUS \n");
+    Printf("  Free Heap: %d\n", ESP.getFreeHeap());
+    Printf("  Large Free Heap: %d\n", ESP.getFreeContStack());
+    Printf("  Chip ID: %08X\n", ESP.getChipId());
+    Printf("  CPU Freq: %d MHz\n", ESP.getCpuFreqMHz());
+    Printf("  Flash Chip ID: %08X\n", ESP.getFlashChipId());
+    Printf("  Flash Chip Size: %d\n", ESP.getFlashChipSize());
+    Printf("  Flash Chip Speed: %d\n", ESP.getFlashChipSpeed());
+    Printf("  Sketch Size: %d\n", ESP.getSketchSize());
+    Printf("  Free Sketch Space: %d\n", ESP.getFreeSketchSpace());
+    Printf("  Reset Reason: %s\n", ESP.getResetReason().c_str());
+    Printf("  Reset Info: %s\n", ESP.getResetInfo().c_str());
+    Printf("  Boot Version: %d\n", ESP.getBootVersion());
+    Printf("  Boot Mode: %d\n", ESP.getBootMode());
+    
+#endif
+}
+
+void _knxapp::status_32()
+{
+#ifdef ESP32
+    // esp32 specific status
+    Log.trace("ESP32 STATUS\n");
+    Log.trace("  SDK Version: %s\n", ESP.getSdkVersion());
+    Log.trace("  Free Heap: %d\n", ESP.getFreeHeap());
+    Log.trace("  Min Free Heap: %d\n", ESP.getMinFreeHeap());
+    Log.trace("  CPU Freq: %d MHz\n", ESP.getCpuFreqMHz());
+    Log.trace("  Flash Chip Size: %d\n", ESP.getFlashChipSize());
+    Log.trace("  Flash Chip Speed: %d\n", ESP.getFlashChipSpeed());
+    Log.trace(F("  Flash Chip Mode: %s\n"), ESP.getFlashChipMode() == FM_QIO ? "QIO" : ESP.getFlashChipMode() == FM_QOUT ? "QOUT" : ESP.getFlashChipMode() == FM_DIO ? "DIO" : ESP.getFlashChipMode() == FM_DOUT ? "DOUT" : "UNKNOWN");
+
+
+
+#endif
+}
+
 void _knxapp::status()
 {
-    Log.trace(">> BASE CODE STATUS << \n");
-
+    
     uint16_t ia = knx.individualAddress();
+
+    Printf("Uptime: %s\n", uptime());
+
+    status_8266();
+    status_32();
+
+    Printf("Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
+
+    Printf("Hostname: %s\n", knxApp.hostname());
+    Printf("IP: %s\n", WiFi.localIP().toString().c_str());
 
     Printf("EEPROM size: %d\n", EEPROM.length());
     Printf("Configured: %s\n", knx.configured() ? "true" : "false");
-    Printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
     Printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
-    Printf("Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
-    Printf("Hostname: %s\n", knxApp.hostname());
-    Printf("IP: %s\n", WiFi.localIP().toString().c_str());
-    Printf("Uptime: %s\n", uptime());
-#ifdef ESP8266
-    Printf("Last reset reason: %s\n", ESP.getResetReason().c_str());
-#endif
+
+    Printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
 }
 
 char *_knxapp::hostname()
@@ -139,8 +183,6 @@ void _knxapp::dumpEEPROM()
     }
 }
 
-// static char menuLine[]="[E] EEPROM [P] parameters [G] groupObject [V] Verbosity [T] toggleProgMode [S] Status [abcz] base [0..9] dump [?] help\n";
-
 void submenuline(char mode, int base)
 {
     char first = (base == 0 ? '1' : '0');
@@ -164,7 +206,7 @@ void _knxapp::menu()
 {
 
     byte b = stdIn->read();
-    char valid[] = "?zabcPGESTV0123456789";
+    const static char valid[] = "?zabcPGESTV0123456789";
 
     while (strchr(valid, b) == NULL)
     {
@@ -301,14 +343,13 @@ void _knxapp::cyclic()
             break;
         }
 
-        Log.info("GO %d FLGS ", g);
-        Log.info("%c%c ", knx.getGroupObject(g).readEnable() ? 'R' : '-', knx.getGroupObject(g).communicationEnable() ? 'C' : '-');
+        Log.info("GO %d FLGS %c%c\n", g, knx.getGroupObject(g).readEnable() ? 'R' : '-', knx.getGroupObject(g).communicationEnable() ? 'C' : '-');
 
         if (knx.getGroupObject(g).readEnable() && knx.getGroupObject(g).communicationEnable())
         {
             KNXValue v = knx.getGroupObject(g).value();
 
-            Log.info("cyclic sent\n");
+            Log.info("  cyclic sent\n");
 
             knx.getGroupObject(g).value(v, knx.getGroupObject(g).dataPointType());
 

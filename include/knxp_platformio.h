@@ -19,7 +19,6 @@
 
 #include "knxapp.h"
 
-
 void setup();
 void loop();
 

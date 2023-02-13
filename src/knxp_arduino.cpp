@@ -85,5 +85,4 @@ void loop()
 
     timeThis( knxApp.cyclic() );
     knx.loop();
-    
 }
