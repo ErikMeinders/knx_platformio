@@ -63,6 +63,7 @@ void _knxapp::status_8266()
     // esp8266 specific status
 
     Printf("ESP8266 STATUS \n");
+    Printf("  Now: %s\n", timeNowString());
     Printf("  Free Heap: %d\n", ESP.getFreeHeap());
     Printf("  Large Free Heap: %d\n", ESP.getFreeContStack());
     Printf("  Chip ID: %08X\n", ESP.getChipId());
@@ -76,6 +77,9 @@ void _knxapp::status_8266()
     Printf("  Reset Info: %s\n", ESP.getResetInfo().c_str());
     Printf("  Boot Version: %d\n", ESP.getBootVersion());
     Printf("  Boot Mode: %d\n", ESP.getBootMode());
+    Printf("  Core Version: %s\n", ESP.getCoreVersion().c_str());
+    Printf("  SDK Version: %s\n", ESP.getSdkVersion());
+    Printf("  Lib build %s %s\n", __DATE__, __TIME__); 
     
 #endif
 }
@@ -85,16 +89,18 @@ void _knxapp::status_32()
 #ifdef ESP32
     // esp32 specific status
     Log.trace("ESP32 STATUS\n");
-    Log.trace("  SDK Version: %s\n", ESP.getSdkVersion());
-    Log.trace("  Free Heap: %d\n", ESP.getFreeHeap());
-    Log.trace("  Min Free Heap: %d\n", ESP.getMinFreeHeap());
-    Log.trace("  CPU Freq: %d MHz\n", ESP.getCpuFreqMHz());
-    Log.trace("  Flash Chip Size: %d\n", ESP.getFlashChipSize());
-    Log.trace("  Flash Chip Speed: %d\n", ESP.getFlashChipSpeed());
-    Log.trace(F("  Flash Chip Mode: %s\n"), ESP.getFlashChipMode() == FM_QIO ? "QIO" : ESP.getFlashChipMode() == FM_QOUT ? "QOUT" : ESP.getFlashChipMode() == FM_DIO ? "DIO" : ESP.getFlashChipMode() == FM_DOUT ? "DOUT" : "UNKNOWN");
-
-
-
+    Printf("  Now: %s\n", timeNowString());
+    Printf("  SDK Version: %s\n", ESP.getSdkVersion());
+    Printf("  Free Heap: %d\n", ESP.getFreeHeap());
+    Printf("  Min Free Heap: %d\n", ESP.getMinFreeHeap());
+    Printf("  CPU Freq: %d MHz\n", ESP.getCpuFreqMHz());
+    Printf("  Flash Chip Size: %d\n", ESP.getFlashChipSize());
+    Printf("  Flash Chip Speed: %d\n", ESP.getFlashChipSpeed());
+    Printf("  Flash Chip Mode: %s\n", ESP.getFlashChipMode() == FM_QIO ? "QIO" : ESP.getFlashChipMode() == FM_QOUT ? "QOUT" : ESP.getFlashChipMode() == FM_DIO ? "DIO" : ESP.getFlashChipMode() == FM_DOUT ? "DOUT" : "UNKNOWN");
+    Printf("  Sketch Size: %d\n", ESP.getSketchSize());
+    Printf("  Free Sketch Space: %d\n", ESP.getFreeSketchSpace());
+    Printf("  Lib build %s %s\n", __DATE__, __TIME__);
+    
 #endif
 }
 

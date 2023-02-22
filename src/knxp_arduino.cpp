@@ -50,6 +50,8 @@ void setup()
     knxApp.progress(step++, "Starting KNX");
     knx.start();
 
+    delay(2000);
+    
     resetUptime();
     Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
 

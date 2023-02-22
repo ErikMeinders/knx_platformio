@@ -25,9 +25,10 @@
 #include "esp_sntp.h"
 #endif
 
+static char timeString[36];
+
 char * _myctime(time_t *when)
 {
-  static char timeString[36];
 
   strcpy(timeString, ctime(when));
   timeString[strlen(timeString) - 1] = '\0'; // remove trailing newline

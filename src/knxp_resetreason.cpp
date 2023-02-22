@@ -1,8 +1,9 @@
 #include "knxp_resetreason.h"
 
+static char txtReason[32];
+
 char * resetReasonStr(RESET_REASON reason)
 {
-  static char txtReason[32];
   int txtReasonLen = sizeof(txtReason);
 
   switch ( reason)
