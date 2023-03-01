@@ -145,8 +145,11 @@ void _knxapp::dumpGroupObject(int i)
 {
     GroupObject *go;
 
-    if (i == 0)
+    if (i == 0 || i > _groupObjectCount)
+    {
+        Printf("GO %02d out of range\n", i);
         return;
+    }
 
     Printf("GO %02d ", i);
     go = &knx.getGroupObject(i);
@@ -159,11 +162,12 @@ void _knxapp::dumpGroupObject(int i)
     Printf(go->responseUpdateEnable() ? "U" : "-");
     Printf(go->valueReadOnInit() ? "I" : "-");
 
-    Printf(" DPT: [%04x][%04x] ", go->dataPointType().mainGroup, go->dataPointType().subGroup);
+    Printf(" DPT: [%d.%d] ", go->dataPointType().mainGroup, go->dataPointType().subGroup);
 
-    Printf("valueSize: %d ", go->valueSize());
+    Printf("valueSize: %d valueRaw(hex): ", go->valueSize());
 
-    Printf("%02x ", (uint8_t)go->value());
+    for (int i = 0; i < go->valueSize(); i++)
+        Printf("%02x ", (uint8_t)go->valueRef()[i]);
 
     Printf("Com Flag: %d \n", go->commFlag());
 }
@@ -349,21 +353,17 @@ void _knxapp::cyclic()
             break;
         }
 
-        Log.info("GO %d FLGS %c%c\n", g, knx.getGroupObject(g).readEnable() ? 'R' : '-', knx.getGroupObject(g).communicationEnable() ? 'C' : '-');
-
         if (knx.getGroupObject(g).readEnable() && knx.getGroupObject(g).communicationEnable())
         {
-            KNXValue v = knx.getGroupObject(g).value();
+            Log.info("GO %d FLGS %c%c\n", g, knx.getGroupObject(g).readEnable() ? 'R' : '-', knx.getGroupObject(g).communicationEnable() ? 'C' : '-');
 
             Log.info("  cyclic sent\n");
 
-            knx.getGroupObject(g).value(v, knx.getGroupObject(g).dataPointType());
+            knx.getGroupObject(g).objectWritten();
 
             knx.loop();
             delay(5);
         
-        } else {
-            Log.info("cyclic skipped\n");
         }
     }
 }
