@@ -166,7 +166,7 @@ void _knxapp::dumpGroupObject(int i)
 
     Printf("valueSize: %d valueRaw(hex): ", go->valueSize());
 
-    for (int i = 0; i < go->valueSize(); i++)
+    for (size_t i = 0; i < go->valueSize(); i++)
         Printf("%02x ", (uint8_t)go->valueRef()[i]);
 
     Printf("Com Flag: %d \n", go->commFlag());

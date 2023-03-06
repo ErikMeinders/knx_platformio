@@ -26,11 +26,15 @@ void setup()
     knxApp.progress(step++, "Starting WiFi");
     startWiFi(knxApp.hostname());
 
+#ifndef NO_NTP
     knxApp.progress(step++, "Starting NTP");
     timeInit();
+#endif
 
+#ifndef NO_TELNET
     knxApp.progress(step++, "Starting Telnet");
     startTelnet();
+#endif
 
     knxApp.progress(step++, "Starting KNX configuration");
     knxApp.conf();
@@ -38,11 +42,15 @@ void setup()
     knxApp.progress(step++, "Starting MDNS");
     startMDNS(knxApp.hostname());
 
+#ifndef NO_OTA
     knxApp.progress(step++, "Starting OTA");
     otaInit();
+#endif
 
+#ifndef NO_HTTP
     knxApp.progress(step++, "Starting Webserver");
     httpServer.begin();
+#endif
 
     knxApp.progress(step++, "Starting KNX Application Setup");
     knxApp.setup();
