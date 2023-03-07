@@ -171,6 +171,10 @@ void _knxapp::dumpGroupObject(int i)
     for (size_t i = 0; i < go->valueSize(); i++)
         Printf("%02x ", (uint8_t)go->valueRef()[i]);
 
+    if( go->dataPointType().mainGroup == 9)
+    {
+        Printf("[ %7.2f ] ", (float) go->value());
+    }
     Printf("Com Flag: %d \n", go->commFlag());
 }
 
