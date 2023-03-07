@@ -8,9 +8,12 @@
 #include <TelnetStream.h>  
      
 void startWiFi(const char *Hostname);
+#ifndef NO_TELNET
 void startTelnet();
+#endif
 void startMDNS(const char *Hostname);
-
+#ifndef NO_HTTP
 extern WebServer        httpServer;
+#endif
 
 #endif

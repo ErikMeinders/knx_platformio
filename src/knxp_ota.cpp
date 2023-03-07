@@ -1,5 +1,5 @@
 #include "knxp_ota.h"
-
+#ifndef NO_OTA
 void otaInit()
 {
   ArduinoOTA
@@ -38,3 +38,4 @@ void otaLoop()
 {
     ArduinoOTA.handle();
 }
+#endif

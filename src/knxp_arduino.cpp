@@ -79,14 +79,20 @@ void loop()
     
     if(knx.progMode()) return;
 
+#ifndef NO_OTA
     timeThis ( otaLoop() );
     knx.loop();
+#endif
 
+#ifndef NO_HEARTBEAT
     timeThis ( handleHeartbeat() );
     knx.loop();
+#endif
 
+#ifndef NO_HTTP
     timeThis ( httpServer.handleClient() );
     knx.loop();
+#endif
 
     timeThis ( knxApp.loop() );
     knx.loop();

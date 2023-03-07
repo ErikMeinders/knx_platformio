@@ -23,7 +23,7 @@ void setup();
 void loop();
 
 #ifndef HOSTNAME
-#define HOSTNAME "knx_device"
+#define HOSTNAME knx_device
 #endif
 
 #define Printf(...)     { stdOut->printf(__VA_ARGS__); }

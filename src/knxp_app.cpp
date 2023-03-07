@@ -126,9 +126,11 @@ void _knxapp::status()
     Printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
 }
 
+#define xstr(s) str(s)
+#define str(s) #s
 char *_knxapp::hostname()
 {
-    return (char *)(HOSTNAME);
+    return (char *) xstr(HOSTNAME);
 }
 
 void _knxapp::progress(int nr, const char *text)

@@ -34,6 +34,7 @@ void startWiFi(const char *Hostname)
 
 } // startWiFi()
 
+#ifndef NO_TELNET
 void startTelnet()
 {
   TelnetStream.begin();
@@ -46,6 +47,7 @@ void startTelnet()
 
 #endif
 } // startTelnet()
+#endif
 
 void startMDNS(const char *Hostname)
 {

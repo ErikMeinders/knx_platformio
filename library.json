@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.6.13",
+  "version": "0.6.14",
   "description": "A platform for building KNX applications for ESP",
   "keywords": "knx, esp, platformio",
   "repository": {

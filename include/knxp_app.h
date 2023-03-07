@@ -73,10 +73,14 @@ class _knxapp {
      * @param count 
      */
     void setGroupObjectCount(int count) { _groupObjectCount = count; }
+    /**
+     * @brief To be called to present the menu and process the user input
+     * 
+     */
+    void menu();
 
   private:
     void help();
-    void menu();
     void dumpParameter(int i);
     void dumpGroupObject(int i);
     void dumpEEPROM();
