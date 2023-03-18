@@ -16,6 +16,9 @@ void _knxapp::pinsetup()
     knx.buttonPin(PROGMODE_PIN);
 
     Log.info("Button pin: %d\n", knx.buttonPin());
+#ifndef NO_HEARTBEAT
+    pinMode(PIN_HEARTBEAT, OUTPUT);
+#endif
 }
 
 void _knxapp::conf()

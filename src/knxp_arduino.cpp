@@ -76,16 +76,16 @@ void loop()
     knx.loop();
     
     if (stdIn->available() >0 ) knxApp.menu();
-    
+
+ #ifndef NO_HEARTBEAT
+    timeThis ( handleHeartbeat() );
+    knx.loop();
+#endif   
+
     if(knx.progMode()) return;
 
 #ifndef NO_OTA
     timeThis ( otaLoop() );
-    knx.loop();
-#endif
-
-#ifndef NO_HEARTBEAT
-    timeThis ( handleHeartbeat() );
     knx.loop();
 #endif
 
