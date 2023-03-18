@@ -2,7 +2,7 @@
 
 static char txtReason[32];
 
-char * resetReasonStr(RESET_REASON reason)
+char * resetReasonStr(int8_t reason)
 {
   int txtReasonLen = sizeof(txtReason);
 

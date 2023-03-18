@@ -10,7 +10,9 @@
 
     #define LED_BUILTIN_ON HIGH
     #define LED_BUILTIN_OFF LOW
+#ifndef PROGMODE_PIN
     #define PROGMODE_PIN 27
+#endif
 
 #endif
 
@@ -20,13 +22,13 @@
     #include "ESP8266mDNS.h"
     #include <ESP8266HTTPClient.h>
 
-    #define RESET_REASON int8_t
     #define WebServer ESP8266WebServer
 
     #define LED_BUILTIN_ON LOW
     #define LED_BUILTIN_OFF HIGH
+#ifndef PROGMODE_PIN
     #define PROGMODE_PIN 27         // probably not!
-
 #endif
 
+#endif
 #endif
