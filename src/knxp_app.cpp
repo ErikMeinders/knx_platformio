@@ -14,6 +14,7 @@ void _knxapp::pinsetup()
 
     // pin or GPIO programming button is connected to. Default is 0
     knx.buttonPin(PROGMODE_PIN);
+    pinMode(PROGMODE_PIN, INPUT_PULLUP);
 
     Log.info("Button pin: %d\n", knx.buttonPin());
 #ifndef NO_HEARTBEAT
