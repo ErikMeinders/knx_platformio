@@ -366,13 +366,17 @@ void _knxapp::cyclic()
         if (knx.getGroupObject(g).readEnable() && knx.getGroupObject(g).communicationEnable())
         {
             Log.info("GO %d FLGS %c%c\n", g, knx.getGroupObject(g).readEnable() ? 'R' : '-', knx.getGroupObject(g).communicationEnable() ? 'C' : '-');
-
-            Log.info("  cyclic sent\n");
-
-            knx.getGroupObject(g).objectWritten();
-
-            knx.loop();
-            delay(5);
+            
+            if(!knx.getGroupObject(g).writeEnable())
+            {
+                knx.getGroupObject(g).objectWritten();
+            }
+            else
+            {
+                Log.info("  --> skipped because writeEnable is true\n"")
+            }
+            
+            DELAY;
         
         }
     }

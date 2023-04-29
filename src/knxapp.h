@@ -18,7 +18,7 @@ class knxapp : public _knxapp
     void loop();            // application loop
     // void cyclic();          // cyclic KNX feedback
 
-    // char* hostname();    // callback by knxp_platformio | default: HOSTNAME / "knx_device"
+    // char* hostname();    // callback by knxp_platformio | default: HOSTNAME from platformio.ini
     void  status();      // callback for additonal status information Menu item 'S'
 
 };

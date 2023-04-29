@@ -31,3 +31,9 @@ void loop();
 
 extern Stream *stdIn;
 extern Stream *stdOut;
+
+#ifndef STD_DELAY
+#define STD_DELAY 100
+#endif
+
+#define DELAY delay(STD_DELAY)
