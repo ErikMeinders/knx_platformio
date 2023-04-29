@@ -23,8 +23,10 @@ void setup()
     knxApp.progress(step++, "Starting pin setup");
     knxApp.pinsetup();
 
+#ifndef NO_WIFI
     knxApp.progress(step++, "Starting WiFi");
     startWiFi(knxApp.hostname());
+#endif
 
 #ifndef NO_NTP
     knxApp.progress(step++, "Starting NTP");
@@ -38,9 +40,11 @@ void setup()
 
     knxApp.progress(step++, "Starting KNX configuration");
     knxApp.conf();
-    
+
+ #ifndef NO_MDNS   
     knxApp.progress(step++, "Starting MDNS");
     startMDNS(knxApp.hostname());
+#endif
 
 #ifndef NO_OTA
     knxApp.progress(step++, "Starting OTA");
@@ -58,7 +62,7 @@ void setup()
     knxApp.progress(step++, "Starting KNX");
     knx.start();
 
-    delay(2000);
+    delay(1000);
     
     resetUptime();
     Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
@@ -79,23 +83,23 @@ void loop()
 
  #ifndef NO_HEARTBEAT
     timeThis ( handleHeartbeat() );
-    knx.loop();
+    // knx.loop();
 #endif   
 
     if(knx.progMode()) return;
 
 #ifndef NO_OTA
     timeThis ( otaLoop() );
-    knx.loop();
+    // knx.loop();
 #endif
 
 #ifndef NO_HTTP
     timeThis ( httpServer.handleClient() );
-    knx.loop();
+    // knx.loop();
 #endif
 
     timeThis ( knxApp.loop() );
-    knx.loop();
+    // knx.loop();
 
     if( !DUE (_cyclicKnxTimer)) return;
 
