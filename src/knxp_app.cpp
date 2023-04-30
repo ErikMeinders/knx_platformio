@@ -373,7 +373,7 @@ void _knxapp::cyclic()
             }
             else
             {
-                Log.info("  --> skipped because writeEnable is true\n"")
+                Log.info("  --> skipped because writeEnable is true\n");
             }
             
             DELAY;
