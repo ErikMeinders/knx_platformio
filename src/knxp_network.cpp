@@ -5,27 +5,44 @@ void startWiFi(const char *Hostname)
 {
   WiFiManager manageWiFi;
 
+  wifi_mode_t myWifiMode = WIFI_STA;
+  int myWifiTimeout = 30;
+
   String thisAP = String(Hostname) + "-" + WiFi.macAddress();
 
 #ifdef NETWORK_ONDEMAND
-  // return when PROG button is NOT pressed
-  pinMode(PROGMODE_PIN, INPUT_PULLUP);
-  if (digitalRead(PROGMODE_PIN) == HIGH)
+  
+  int cnt = 0;
+
+  if (!digitalRead(PROGMODE_PIN) == LOW)
   {
     Log.info("PROG button not pressed, not starting WiFi\n");
     return;
+  } else {
+    Log.info("PROG button pressed, starting WiFi\n");
+    while(digitalRead(PROGMODE_PIN) == LOW){
+      delay(100);
+      cnt++;
+    }
+    if(cnt > 100){
+      Log.info("PROG button pressed for more than 10 seconds, starting AP upon release\n");
+      myWifiMode = WIFI_AP_STA;
+      myWifiTimeout = 120;
+    }
   }
+  
 #endif
 
   WiFi.hostname(Hostname);
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(myWifiMode);
 
   manageWiFi.setDebugOutput(true);
   manageWiFi.setHostname(Hostname);
 
   //--sets timeout until configuration portal gets turned off
   //--useful to make it all retry or go to sleep in seconds
-  manageWiFi.setTimeout(120); // 2 minuten
+
+  manageWiFi.setTimeout(myWifiTimeout); // 2 minuten
 
   //--fetches ssid and pass and tries to connect
   //--if it does not connect it starts an access point with the specified name
