@@ -1,4 +1,6 @@
-    #include <knxp_platformio.h>
+#include <knxp_platformio.h>
+#define xstr(s) str(s)
+#define str(s) #s
 
 DECLARE_TIMER(BaseCodeShoutOut, 5);
 
@@ -130,8 +132,7 @@ void _knxapp::status()
     Printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
 }
 
-#define xstr(s) str(s)
-#define str(s) #s
+
 char *_knxapp::hostname()
 {
     return (char *) xstr(HOSTNAME);

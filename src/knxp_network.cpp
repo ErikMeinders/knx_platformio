@@ -7,6 +7,16 @@ void startWiFi(const char *Hostname)
 
   String thisAP = String(Hostname) + "-" + WiFi.macAddress();
 
+#ifdef NETWORK_ONDEMAND
+  // return when PROG button is NOT pressed
+  pinMode(PROGMODE_PIN, INPUT_PULLUP);
+  if (digitalRead(PROGMODE_PIN) == HIGH)
+  {
+    Log.info("PROG button not pressed, not starting WiFi\n");
+    return;
+  }
+#endif
+
   WiFi.hostname(Hostname);
   WiFi.mode(WIFI_STA);
 
@@ -31,6 +41,8 @@ void startWiFi(const char *Hostname)
   }
 
   Log.info("Connected with IP-address [%s]\n", WiFi.localIP().toString().c_str());
+
+  networkReady = true;
 
 } // startWiFi()
 

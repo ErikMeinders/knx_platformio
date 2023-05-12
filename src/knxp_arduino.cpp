@@ -9,6 +9,8 @@ Stream *stdOut = &Serial;
 
 DECLARE_gTIMER(_cyclicKnxTimer, 0);
 
+bool networkReady = false;
+
 /**
  * @brief HiJack the Arduino setup() function
  * Do not continue with application setup until KNX is ready
@@ -29,31 +31,46 @@ void setup()
 #endif
 
 #ifndef NO_NTP
-    knxApp.progress(step++, "Starting NTP");
-    timeInit();
+    if( networkReady) 
+    {
+        knxApp.progress(step++, "Starting NTP");
+        timeInit(); 
+    }
 #endif
 
 #ifndef NO_TELNET
-    knxApp.progress(step++, "Starting Telnet");
-    startTelnet();
+    if( networkReady)
+    {
+        knxApp.progress(step++, "Starting Telnet");
+        startTelnet();
+    }
 #endif
 
     knxApp.progress(step++, "Starting KNX configuration");
     knxApp.conf();
 
- #ifndef NO_MDNS   
-    knxApp.progress(step++, "Starting MDNS");
-    startMDNS(knxApp.hostname());
+ #ifndef NO_MDNS
+    if( networkReady)
+    {
+        knxApp.progress(step++, "Starting MDNS");
+        startMDNS(knxApp.hostname());
+    }
 #endif
 
 #ifndef NO_OTA
-    knxApp.progress(step++, "Starting OTA");
-    otaInit();
+    if ( networkReady)
+    {
+        knxApp.progress(step++, "Starting OTA");
+        otaInit();
+    }
 #endif
 
 #ifndef NO_HTTP
-    knxApp.progress(step++, "Starting Webserver");
-    httpServer.begin();
+    if ( networkReady)
+    {
+        knxApp.progress(step++, "Starting HTTP");
+        httpServer.begin();
+    }
 #endif
 
     knxApp.progress(step++, "Starting KNX Application Setup");
@@ -61,8 +78,6 @@ void setup()
     
     knxApp.progress(step++, "Starting KNX");
     knx.start();
-
-    delay(1000);
     
     resetUptime();
     Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
@@ -83,26 +98,21 @@ void loop()
 
  #ifndef NO_HEARTBEAT
     timeThis ( handleHeartbeat() );
-    // knx.loop();
 #endif   
 
     if(knx.progMode()) return;
 
 #ifndef NO_OTA
-    timeThis ( otaLoop() );
-    // knx.loop();
+    if (networkReady) { timeThis ( otaLoop() ); }
 #endif
 
 #ifndef NO_HTTP
-    timeThis ( httpServer.handleClient() );
-    // knx.loop();
+    if (networkReady) { timeThis ( httpServer.handleClient() ); }
 #endif
 
     timeThis ( knxApp.loop() );
-    // knx.loop();
 
     if( !DUE (_cyclicKnxTimer)) return;
 
     timeThis( knxApp.cyclic() );
-    knx.loop();
 }
