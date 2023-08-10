@@ -5,3 +5,8 @@ I use this as a starting point for KaeNX applications I develop
 
 ## Compiler options
 
+
+
+## Diagram
+
+![Visualization of the codebase](./diagram.svg)
