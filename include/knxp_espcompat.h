@@ -29,6 +29,6 @@
 #ifndef PROGMODE_PIN
     #define PROGMODE_PIN 27         // probably not!
 #endif
-
+    #define wifi_mode_t WiFiMode
 #endif
 #endif
