@@ -46,8 +46,10 @@ void setup()
     }
 #endif
 
+#ifndef NO_KNX
     knxApp.progress(step++, "Starting KNX configuration");
     knxApp.conf();
+#endif
 
  #ifndef NO_MDNS
     if( networkReady)
@@ -75,10 +77,12 @@ void setup()
 
     knxApp.progress(step++, "Starting KNX Application Setup");
     knxApp.setup();
-    
+
+#ifndef NO_KNX   
     knxApp.progress(step++, "Starting KNX");
     knx.start();
-    
+#endif
+
     resetUptime();
     Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
 
@@ -92,15 +96,19 @@ void setup()
  */
 void loop()
 {
+#ifndef NO_KNX
     knx.loop();
-    
+#endif
+
     if (stdIn->available() >0 ) knxApp.menu();
 
- #ifndef NO_HEARTBEAT
+#ifndef NO_HEARTBEAT
     timeThis ( handleHeartbeat() );
 #endif   
 
+#ifndef NO_KNX
     if(knx.progMode()) return;
+#endif
 
 #ifndef NO_OTA
     if (networkReady) { timeThis ( otaLoop() ); }
@@ -113,6 +121,7 @@ void loop()
     timeThis ( knxApp.loop() );
 
     if( !DUE (_cyclicKnxTimer)) return;
-
+#ifndef NO_KNX
     timeThis( knxApp.cyclic() );
+#endif
 }
