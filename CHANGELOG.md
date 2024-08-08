@@ -1,3 +1,10 @@
+## [0.9.2](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.1...v0.9.2) (2024-08-08)
+
+
+### Bug Fixes
+
+* changed version in library to read will be replaced ([2d7b7d2](https://github.com/ErikMeinders/knx_platformio/commit/2d7b7d25f3121ea73c916f10df80e1c92c8d1000))
+
 ## [0.9.1](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.0...v0.9.1) (2024-08-08)
 
 
