@@ -11,23 +11,6 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v1
-        with:
-          # Persist the 1Password Service Account Authorization token
-          # for next steps.
-          # Keep in mind that every single step in the job is now
-          # able to access the token.
-          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-
-      - name: Load GitHub credentials
-        id: load-github-credentials
-        uses: 1password/load-secrets-action@v1
-        with:
-          export-env: false
-        env:
-          HOMEBREW_TAP_GITHUB_TOKEN: op://CICD/github-easytocloud-brew/credential 
-
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
