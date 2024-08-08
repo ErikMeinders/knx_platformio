@@ -1,3 +1,10 @@
+## [0.9.1](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.0...v0.9.1) (2024-08-08)
+
+
+### Bug Fixes
+
+* changed tagging updater ([e4305ca](https://github.com/ErikMeinders/knx_platformio/commit/e4305caa3687392c2d853c5f048e9f77ba23c24a))
+
 # [0.9.0](https://github.com/ErikMeinders/knx_platformio/compare/v0.8.5...v0.9.0) (2024-08-08)
 
 
