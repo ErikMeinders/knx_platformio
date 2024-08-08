@@ -1,4 +1,7 @@
-on: [push]
+on: 
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -6,14 +9,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+
+      - uses: actions/checkout@v4
+
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v1
+        with:
+          # Persist the 1Password Service Account Authorization token
+          # for next steps.
+          # Keep in mind that every single step in the job is now
+          # able to access the token.
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Load GitHub credentials
+        id: load-github-credentials
+        uses: 1password/load-secrets-action@v1
+        with:
+          export-env: false
+        env:
+          HOMEBREW_TAP_GITHUB_TOKEN: op://CICD/github-easytocloud-brew/credential 
+
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GH_TOKEN: ${{ steps.load-github-credentials.outputs.HOMEBREW_TAP_GITHUB_TOKEN  }}
+
+      - name: Release akskrotate to easytocloud/homebrew-tap
+
     - name: Set up Python
+      if: steps.semantic.outputs.new_release_published == 'true'
       uses: actions/setup-python@v4
+      
     - name: Install PlatformIO
+      if: steps.semantic.outputs.new_release_published == 'true'
       run: |
         python -m pip install --upgrade pip
         pip install platformio
+
     - name: Publish package
+      if: steps.semantic.outputs.new_release_published == 'true'
       env:
         PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
       run: platformio pkg publish --no-interactive
