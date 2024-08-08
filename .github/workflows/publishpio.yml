@@ -34,8 +34,6 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.load-github-credentials.outputs.HOMEBREW_TAP_GITHUB_TOKEN  }}
 
-      - name: Release akskrotate to easytocloud/homebrew-tap
-
       - name: Set up Python
         if: steps.semantic.outputs.new_release_published == 'true'
         uses: actions/setup-python@v4
