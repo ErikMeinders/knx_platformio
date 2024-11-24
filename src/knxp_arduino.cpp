@@ -5,12 +5,13 @@ WebServer httpServer;
 Stream *stdIn = &Serial;
 Stream *stdOut = &Serial;
 
+#ifdef kabouter
 #define DECLARE_gTIMER(timerName, timerTime) \
     unsigned long timerName##_interval = timerTime * 1000, \
     timerName##_last = millis()+random(timerName##_interval);
 
 DECLARE_gTIMER(_cyclicKnxTimer, 0);
-
+#endif
 /**
  * @brief Initialize network-dependent services
  * @param step Progress step counter
