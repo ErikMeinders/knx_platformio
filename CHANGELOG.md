@@ -1,3 +1,11 @@
+## [0.9.3](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.2...v0.9.3) (2024-11-24)
+
+
+### Bug Fixes
+
+* cyclic timer ([9e137f1](https://github.com/ErikMeinders/knx_platformio/commit/9e137f1913a26901df26f2cf9dc079611b4a1286))
+* some code cleanup, improved WiFi reliability ([1b0d59f](https://github.com/ErikMeinders/knx_platformio/commit/1b0d59f27c40a00ce523daaf63c33c2b2c211e03))
+
 ## [0.9.2](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.1...v0.9.2) (2024-08-08)
 
 
