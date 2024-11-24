@@ -37,5 +37,3 @@ extern Stream *stdOut;
 #endif
 
 #define DELAY delay(STD_DELAY)
-
-extern bool networkReady;

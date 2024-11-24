@@ -3,6 +3,7 @@
 #define str(s) #s
 
 DECLARE_TIMER(BaseCodeShoutOut, 5);
+DECLARE_TIMER(CyclicTimer,0);
 
 void _knxapp::pinsetup()
 {
@@ -119,17 +120,18 @@ void _knxapp::status()
 
     status_8266();
     status_32();
+    
+    Printf("Network status\n")
+    Printf("  Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
+    Printf("  Hostname: %s\n", knxApp.hostname());
+    Printf("  IP: %s\n", WiFi.localIP().toString().c_str());
+    Printf("  Network ready: %s\n", isNetworkReady() ? "true" : "false");
 
-    Printf("Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
-
-    Printf("Hostname: %s\n", knxApp.hostname());
-    Printf("IP: %s\n", WiFi.localIP().toString().c_str());
-
-    Printf("EEPROM size: %d\n", EEPROM.length());
-    Printf("Configured: %s\n", knx.configured() ? "true" : "false");
-    Printf("Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
-
-    Printf("Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
+    Printf("KNX status\n");
+    Printf("  EEPROM size: %d\n", EEPROM.length());
+    Printf("  Configured: %s\n", knx.configured() ? "true" : "false");
+    Printf("  Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
+    Printf("  Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
 }
 
 
@@ -352,8 +354,16 @@ void _knxapp::help()
     Println("[?] Help: print this help");
 }
 
+void _knxapp::setCyclicTimer(unsigned long interval)
+{
+    SET_TIMER(CyclicTimer, interval);
+}
+
 void _knxapp::cyclic()
 {
+    if(!DUE(CyclicTimer))
+        return;
+    
     Log.trace("Entering cyclic\n");
 
     for (int16_t g = 1; g <= _groupObjectCount; g++)

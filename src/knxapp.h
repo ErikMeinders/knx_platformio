@@ -9,17 +9,10 @@
 class knxapp : public _knxapp
 {
   public:
-    // void progress(int step, const char *msg);  // callback for knxp_platformio
-
-    // void  pinsetup();    // before anything else
-    // void  conf();        // after Wifi, NTP and Telnet
 
     void setup() ;          // after KNX configuration before KNX start  
     void loop();            // application loop
-    // void cyclic();          // cyclic KNX feedback
-
-    // char* hostname();    // callback by knxp_platformio | default: HOSTNAME from platformio.ini
-    void  status();      // callback for additonal status information Menu item 'S'
+    void status();          // callback for additonal status information Menu item 'S'
 
 };
 

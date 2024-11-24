@@ -40,7 +40,7 @@ class _knxapp {
      * Unlikely your application will override this
      * 
      */
-    virtual void cyclic();
+    void cyclic();
     /**
      * @brief Get the Hostname object
      * 
@@ -66,7 +66,7 @@ class _knxapp {
      * 
      * @param interval - in seconds
      */
-    void setCyclicTimer(unsigned long interval) { _cyclicKnxTimer_interval = interval * 1000; }
+    void setCyclicTimer(unsigned long interval);
     /**
      * @brief Set the Group Object Count (how many group objects to consider to send cyclic values)
      * 
