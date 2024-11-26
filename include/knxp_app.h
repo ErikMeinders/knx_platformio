@@ -11,6 +11,8 @@ extern unsigned long _cyclicKnxTimer_interval;
  */
 class _knxapp {
   public:
+    virtual ~_knxapp() = default;  // Virtual destructor for proper cleanup
+
     /**
      * @brief First application call to setup pins
      * 
@@ -49,7 +51,7 @@ class _knxapp {
     virtual char *hostname();
     /**
      * @brief Dump the internal status of the application
-     * Override to add your own status informatio
+     * Override to add your own status information
      * 
      */
     virtual void status();
@@ -91,6 +93,4 @@ class _knxapp {
     int _groupObjectCount = 0;
 };
 
-extern _knxapp _knxApp;
-
-#endif  
+#endif

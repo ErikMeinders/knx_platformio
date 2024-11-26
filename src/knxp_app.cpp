@@ -5,6 +5,18 @@
 DECLARE_TIMER(BaseCodeShoutOut, 5);
 DECLARE_TIMER(CyclicTimer,0);
 
+void _knxapp::setup()
+{
+    Println(">> BASE CODE SETUP START << ");
+    Println(">> BASE CODE SETUP DONE << ");
+}
+
+void _knxapp::loop()
+{
+    if (DUE(BaseCodeShoutOut))
+        Println(">> BASE CODE LOOP << ");
+}
+
 void _knxapp::pinsetup()
 {
     // put your pin setup code here, to run once before platform setup:
@@ -41,27 +53,13 @@ void _knxapp::conf()
         while (!knx.configured())
         {
             if (stdIn->available())
-                menu();
+                this->menu();
 
             knx.loop();
         }
         // knx.stop();
         ESP.restart();
     }
-}
-
-void _knxapp::setup()
-{
-    Println(">> BASE CODE SETUP START -- OVERRIDE THIS ! << ");
-
-    Println(">> BASE CODE SETUP DONE << ");
-}
-
-void _knxapp::loop()
-{
-    if (DUE(BaseCodeShoutOut))
-
-        Println(">> BASE CODE LOOP -- OVERRIDE THIS << ");
 }
 
 void _knxapp::status_8266()
@@ -113,7 +111,6 @@ void _knxapp::status_32()
 
 void _knxapp::status()
 {
-    
     uint16_t ia = knx.individualAddress();
 
     Printf("Uptime: %s\n", uptime());
@@ -123,7 +120,7 @@ void _knxapp::status()
     
     Printf("Network status\n")
     Printf("  Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
-    Printf("  Hostname: %s\n", knxApp.hostname());
+    Printf("  Hostname: %s\n", this->hostname());
     Printf("  IP: %s\n", WiFi.localIP().toString().c_str());
     Printf("  Network ready: %s\n", isNetworkReady() ? "true" : "false");
 
@@ -133,7 +130,6 @@ void _knxapp::status()
     Printf("  Individual Address: %d.%d.%d\n", ia >> 12, (ia >> 8) & 0x0F, ia & 0xFF);
     Printf("  Programming mode %s\n", knx.progMode() ? "Enabled" : "Disabled");
 }
-
 
 char *_knxapp::hostname()
 {
@@ -227,7 +223,6 @@ void submenuline(char mode, int base)
 
 void _knxapp::menu()
 {
-
     byte b = stdIn->read();
     const static char valid[] = "?zabcPGESTV0123456789";
 
@@ -277,7 +272,7 @@ void _knxapp::menu()
         submenuline(mode, base);
         break;
     case 'S':
-        knxApp.status();
+        this->status();  // Call status through this instance
         break;
     case 'T':
         knx.toggleProgMode();
@@ -388,9 +383,6 @@ void _knxapp::cyclic()
             }
             
             DELAY;
-        
         }
     }
 }
-
-_knxapp _knxApp;

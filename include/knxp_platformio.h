@@ -17,8 +17,6 @@
 #include <knxp_resetreason.h>
 #include <knxp_app.h>
 
-#include "knxapp.h"
-
 void setup();
 void loop();
 
@@ -31,6 +29,9 @@ void loop();
 
 extern Stream *stdIn;
 extern Stream *stdOut;
+
+// Reference to the application instance
+extern _knxapp& _knxApp;
 
 #ifndef STD_DELAY
 #define STD_DELAY 100

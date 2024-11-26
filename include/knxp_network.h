@@ -4,7 +4,9 @@
 #include <Arduino.h>
 #include <knxp_espcompat.h>
 #include <WiFiManager.h>
+#ifndef NO_TELNET
 #include <TelnetStream.h>
+#endif
 
 /**
  * @file knxp_network.h

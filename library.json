@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "## Will be replaced by the build system based on the git tag ##",
+  "version": "0.1.0",
   "description": "A comprehensive platform for building KNX applications for ESP8266/ESP32 devices with advanced networking, OTA updates, and monitoring capabilities",
   "keywords": [
     "knx",
@@ -32,7 +32,6 @@
       "src/knxp_*",
       "include/knxp_*",
       "library.json",
-      "platformio.ini",
       "README.md",
       "LICENSE"
     ],
@@ -45,14 +44,17 @@
   "dependencies": {
     "profiler": "erikmeinders/profiler@^0.7.4",
     "ArduinoLog": "thijse/ArduinoLog@^1.1.1",
-    "TelnetStream": "jandrassy/TelnetStream@^1.2.4",
+    "TelnetStream": "jandrassy/TelnetStream@^1.3.0",
     "knx": "https://github.com/thelsing/knx.git",
     "WiFiManager": "https://github.com/tzapu/WiFiManager.git"
   },
   "build": {
-    "libArchive": false
+    "libArchive": false,
+    "flags": [
+      "-I$PROJECT_DIR/include"
+    ]
   },
   "examples": [
-    "examples/*/*.ino"
+    "examples/*"
   ]
 }

@@ -5,13 +5,6 @@ WebServer httpServer;
 Stream *stdIn = &Serial;
 Stream *stdOut = &Serial;
 
-#ifdef kabouter
-#define DECLARE_gTIMER(timerName, timerTime) \
-    unsigned long timerName##_interval = timerTime * 1000, \
-    timerName##_last = millis()+random(timerName##_interval);
-
-DECLARE_gTIMER(_cyclicKnxTimer, 0);
-#endif
 /**
  * @brief Initialize network-dependent services
  * @param step Progress step counter
@@ -21,27 +14,27 @@ int initializeNetworkServices(int step) {
     if (!isNetworkReady()) return step;
 
     #ifndef NO_NTP
-        knxApp.progress(step++, "Starting NTP");
+        _knxApp.progress(step++, "Starting NTP");
         timeInit();
     #endif
 
     #ifndef NO_TELNET
-        knxApp.progress(step++, "Starting Telnet");
+        _knxApp.progress(step++, "Starting Telnet");
         startTelnet();
     #endif
 
     #ifndef NO_MDNS
-        knxApp.progress(step++, "Starting MDNS");
-        startMDNS(knxApp.hostname());
+        _knxApp.progress(step++, "Starting MDNS");
+        startMDNS(_knxApp.hostname());
     #endif
 
     #ifndef NO_OTA
-        knxApp.progress(step++, "Starting OTA");
+        _knxApp.progress(step++, "Starting OTA");
         otaInit();
     #endif
 
     #ifndef NO_HTTP
-        knxApp.progress(step++, "Starting HTTP");
+        _knxApp.progress(step++, "Starting HTTP");
         httpServer.begin();
     #endif
 
@@ -58,13 +51,13 @@ void setup() {
     Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
     // Initialize basic hardware
-    knxApp.progress(step++, "Starting pin setup");
-    knxApp.pinsetup();
+    _knxApp.progress(step++, "Starting pin setup");
+    _knxApp.pinsetup();
 
     // Initialize networking
     #ifndef NO_WIFI
-        knxApp.progress(step++, "Starting WiFi");
-        startWiFi(knxApp.hostname());
+        _knxApp.progress(step++, "Starting WiFi");
+        startWiFi(_knxApp.hostname());
     #endif
 
     // Initialize network-dependent services
@@ -72,16 +65,16 @@ void setup() {
 
     // Initialize KNX
     #ifndef NO_KNX
-        knxApp.progress(step++, "Starting KNX configuration");
-        knxApp.conf();
+        _knxApp.progress(step++, "Starting KNX configuration");
+        _knxApp.conf();
     #endif
 
     // Initialize application
-    knxApp.progress(step++, "Starting KNX Application Setup");
-    knxApp.setup();
+    _knxApp.progress(step++, "Starting KNX Application Setup");
+    _knxApp.setup();
 
     #ifndef NO_KNX   
-        knxApp.progress(step++, "Starting KNX");
+        _knxApp.progress(step++, "Starting KNX");
         knx.start();
     #endif
 
@@ -114,7 +107,7 @@ void loop() {
     #endif
 
     if (stdIn->available() > 0) {
-        knxApp.menu();
+        _knxApp.menu();
     }
 
     #ifndef NO_HEARTBEAT
@@ -123,8 +116,8 @@ void loop() {
 
     #ifndef NO_KNX
         if (knx.progMode()) return;
-        timeThis(knxApp.loop());
-        timeThis(knxApp.cyclic());
+        timeThis(_knxApp.loop());
+        timeThis(_knxApp.cyclic());
     #endif
 
     #ifndef NO_NETWORK
