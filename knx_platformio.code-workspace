@@ -2,6 +2,10 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"name": "basic",
+			"path": "examples/basic"
 		}
 	],
 	"settings": {}

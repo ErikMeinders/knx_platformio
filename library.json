@@ -32,6 +32,7 @@
       "src/knxp_*",
       "include/knxp_*",
       "library.json",
+      "CHANGELOG.md",
       "README.md",
       "LICENSE"
     ],
