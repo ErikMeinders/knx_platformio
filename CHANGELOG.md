@@ -1,3 +1,10 @@
+# [0.10.0](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.3...v0.10.0) (2024-11-29)
+
+
+### Features
+
+* added support for local include in project ([83dba22](https://github.com/ErikMeinders/knx_platformio/commit/83dba22fe2a074fbf89893a7152513b7d5180943))
+
 ## [0.9.3](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.2...v0.9.3) (2024-11-24)
 
 
