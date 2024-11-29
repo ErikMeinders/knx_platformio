@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.1.0",
+  "version": "0.9.5a",
   "description": "A comprehensive platform for building KNX applications for ESP8266/ESP32 devices with advanced networking, OTA updates, and monitoring capabilities",
   "keywords": [
     "knx",

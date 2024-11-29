@@ -1,3 +1,6 @@
+#ifndef _KNXP_PLATFORMIO_H
+#define _KNXP_PLATFORMIO_H
+
 #include <Arduino.h>
 #include <ArduinoLog.h>
 
@@ -16,6 +19,10 @@
 #include <knxp_heartbeat.h>
 #include <knxp_resetreason.h>
 #include <knxp_app.h>
+
+#ifndef NOWEB
+#include <knxp_web.h>
+#endif
 
 void setup();
 void loop();
@@ -38,3 +45,5 @@ extern _knxapp& _knxApp;
 #endif
 
 #define DELAY delay(STD_DELAY)
+
+#endif
