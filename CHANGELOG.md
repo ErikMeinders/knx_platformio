@@ -1,3 +1,10 @@
+## [0.10.1](https://github.com/ErikMeinders/knx_platformio/compare/v0.10.0...v0.10.1) (2024-11-29)
+
+
+### Bug Fixes
+
+* added extra examples ([648cafe](https://github.com/ErikMeinders/knx_platformio/commit/648cafeb15b4fd4bbfe12e3c1c20637df23e1972))
+
 # [0.10.0](https://github.com/ErikMeinders/knx_platformio/compare/v0.9.3...v0.10.0) (2024-11-29)
 
 
