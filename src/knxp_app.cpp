@@ -3,19 +3,8 @@
 #define str(s) #s
 
 DECLARE_TIMER(BaseCodeShoutOut, 5);
-DECLARE_TIMER(CyclicTimer,0);
+DECLARE_TIMER(CyclicTimer,10);
 
-void _knxapp::setup()
-{
-    Println(">> BASE CODE SETUP START << ");
-    Println(">> BASE CODE SETUP DONE << ");
-}
-
-void _knxapp::loop()
-{
-    if (DUE(BaseCodeShoutOut))
-        Println(">> BASE CODE LOOP << ");
-}
 
 void _knxapp::pinsetup()
 {
@@ -62,7 +51,7 @@ void _knxapp::conf()
     }
 }
 
-void _knxapp::status_8266()
+void _knxapp::esp_status()
 {
 #ifdef ESP8266
     // esp8266 specific status
@@ -87,10 +76,7 @@ void _knxapp::status_8266()
     Printf("  Lib build %s %s\n", __DATE__, __TIME__); 
     
 #endif
-}
 
-void _knxapp::status_32()
-{
 #ifdef ESP32
     // esp32 specific status
     Log.trace("ESP32 STATUS\n");
@@ -115,8 +101,7 @@ void _knxapp::status()
 
     Printf("Uptime: %s\n", uptime());
 
-    status_8266();
-    status_32();
+    esp_status();
     
     Printf("Network status\n")
     Printf("  Wifi: %s\n", WiFi.isConnected() ? "Connected" : "Disconnected");
@@ -136,10 +121,6 @@ char *_knxapp::hostname()
     return (char *) xstr(HOSTNAME);
 }
 
-void _knxapp::progress(int nr, const char *text)
-{
-    Log.trace(">> Startup step [%d]: %s\n", nr, text);
-}
 
 void _knxapp::dumpParameter(int i)
 {
@@ -359,6 +340,11 @@ void _knxapp::cyclic()
     if(!DUE(CyclicTimer))
         return;
     
+    if(!knx.configured())
+    {
+        Log.error("KNX not configured\n");
+        return;
+    }
     Log.trace("Entering cyclic\n");
 
     for (int16_t g = 1; g <= _groupObjectCount; g++)
@@ -368,21 +354,16 @@ void _knxapp::cyclic()
             Log.error("ASAP mismatch %d %d\n", g, knx.getGroupObject(g).asap());
             break;
         }
+        Log.info("GO %d FLGS %c%c%c%c\n", g, knx.getGroupObject(g).communicationEnable() ? 'C' : '-',
+            knx.getGroupObject(g).readEnable() ? 'R' : '-', 
+            knx.getGroupObject(g).writeEnable() ? 'W' : '-',
+            knx.getGroupObject(g).transmitEnable() ? 'T' : '-');
 
-        if (knx.getGroupObject(g).readEnable() && knx.getGroupObject(g).communicationEnable())
-        {
-            Log.info("GO %d FLGS %c%c\n", g, knx.getGroupObject(g).readEnable() ? 'R' : '-', knx.getGroupObject(g).communicationEnable() ? 'C' : '-');
-            
-            if(!knx.getGroupObject(g).writeEnable())
-            {
-                knx.getGroupObject(g).objectWritten();
-            }
-            else
-            {
-                Log.info("  --> skipped because writeEnable is true\n");
-            }
-            
-            DELAY;
+        if (knx.getGroupObject(g).readEnable() && knx.getGroupObject(g).communicationEnable() && 
+            knx.getGroupObject(g).transmitEnable() && !knx.getGroupObject(g).writeEnable())
+        {                        
+            knx.getGroupObject(g).objectWritten();
+            delay(100);
         }
     }
 }

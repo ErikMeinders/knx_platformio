@@ -19,8 +19,9 @@
 #include <knxp_heartbeat.h>
 #include <knxp_resetreason.h>
 #include <knxp_app.h>
+#include <knxp_progress.h>
 
-#ifndef NOWEB
+#ifdef FEATURE_WEB
 #include <knxp_web.h>
 #endif
 
@@ -36,9 +37,6 @@ void loop();
 
 extern Stream *stdIn;
 extern Stream *stdOut;
-
-// Reference to the application instance
-extern _knxapp& _knxApp;
 
 #ifndef STD_DELAY
 #define STD_DELAY 100

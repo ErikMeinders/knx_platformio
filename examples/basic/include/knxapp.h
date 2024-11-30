@@ -11,6 +11,7 @@ class knxapp : public _knxapp
     void setup() override;
     void loop() override;
     void status() override;
+    void knx_setup();
 
   private:
     unsigned long xx = 0;

@@ -1,6 +1,14 @@
 #ifndef _KNXP_APP_H
 #define _KNXP_APP_H
 
+#ifdef FEATURE_WEB
+#include "knxp_web.h"
+#endif
+
+#ifdef FEATURE_WEBS
+#include "knxp_webs.h"
+#endif
+
 extern unsigned long _cyclicKnxTimer_interval;
 /**
  * @brief Base class for application
@@ -31,6 +39,8 @@ class _knxapp {
      * 
      */
     virtual void setup();
+    virtual void knx_setup() = 0;  // Must be overridden
+
     /**
      * @brief Your application loop
      * All other services are handled in the background by the library
@@ -55,13 +65,6 @@ class _knxapp {
      * 
      */
     virtual void status();
-    /**
-     * @brief Progress indicator showing the application setup progress
-     * 
-     * @param step 
-     * @param msg 
-     */
-    virtual void progress(int step, const char *msg);
 
     /**
      * @brief Set the Cyclic Timer (how ofter to send cyclic values - 0 = off)
@@ -81,14 +84,22 @@ class _knxapp {
      */
     void menu();
 
+  protected:
+#ifdef FEATURE_WEB
+    KNXWebServer webServer;
+#endif
+
+#ifdef FEATURE_WEBS
+    KNXWebSocketServer webSocketServer;
+#endif
+
   private:
     void help();
     void dumpParameter(int i);
     void dumpGroupObject(int i);
     void dumpEEPROM();
 
-    void status_8266();
-    void status_32();
+    void esp_status();
 
     int _groupObjectCount = 0;
 };

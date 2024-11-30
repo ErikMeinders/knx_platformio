@@ -9,7 +9,13 @@ the library itself exists of files in the src and include directories.
 The library.json file is used to define the library and its dependencies.
 The library is published to the platformIO library repository.
 
+The library doesn't require a platformio.ini.
+
 The CI/CD pipeline runs on github upon push to the master/main branch.
+
+Examples are part of the library in the examples directory.
+The platformio.ini in the examples references the library in the lib_deps section using a symlink.
+The examples are built with the local development version of the library, not the published version.
 
 ## Instructions
 
