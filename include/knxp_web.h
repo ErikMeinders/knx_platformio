@@ -1,7 +1,7 @@
 #ifndef KNXP_WEB_H
 #define KNXP_WEB_H
 
-#ifndef NOWEB
+#ifdef FEATURE_WEB
 
 #ifdef ESP32
   #include <WebServer.h>
@@ -12,52 +12,30 @@
 #endif
 
 #include <LittleFS.h>
-#include <functional>
-#include <vector>
-#include <ArduinoLog.h>
 
-#define WEB_CHUNK_SIZE 1024
-
+/**
+ * Simple web server that serves static files from LittleFS.
+ * 
+ * Note: This uses the same LittleFS instance as your application.
+ * If your application also uses LittleFS for config files:
+ * - Both uses share the same filesystem space
+ * - Multiple LittleFS.begin() calls are safe (it's a singleton)
+ * - Just ensure web files don't have same names as your config files
+ */
 class KNXWebServer {
 public:
-    using APIHandler = std::function<void(WebServerClass&)>;
-
     KNXWebServer();
-    
-    // Initialize web server and filesystem
     bool begin();
-    
-    // Main processing loop
     void loop();
-    
-    // Add custom API endpoint
-    void addAPIHandler(const char* path, HTTPMethod method, APIHandler handler);
-    
-    // Set custom 404 handler
-    void setNotFoundHandler(APIHandler handler);
-
-    // Get reference to underlying server
-    WebServerClass& getServer() { return server; }
 
 private:
     WebServerClass server;
-    std::vector<std::pair<String, APIHandler>> apiHandlers;
-    APIHandler notFoundHandler;
-
-    struct MimeType {
-        const char* extension;
-        const char* type;
-    };
-    static const MimeType mimeTypes[];
-
-    // Internal handlers
-    void handleFileRequest();
-    void serveFile(const String& path, const char* contentType);
-    const char* getMimeType(const String& path);
-    void setCacheHeaders();
-    bool isAPIPath(const String& path);
-    void setupDefaultEndpoints();
+    static const size_t CHUNKSIZE = 1024;
+    
+    void handleFile(String path);
+    const char* getContentType(String filename);
 };
 
-#endif // NOWEB
+#define CHUNK_SIZE 1024
+#endif // FEATURE_WEB
 #endif // KNXP_WEB_H
