@@ -1,6 +1,10 @@
 # KNX PlatformIO Library
 
-A comprehensive platform for building KNX applications for ESP8266/ESP32 devices. This library provides a robust foundation for developing KNX-enabled IoT devices with features like OTA updates, network management, and monitoring capabilities.
+A comprehensive platform for building KNX applications for ESP8266/ESP32 devices. This library provides a robust foundation for developing KNX-enabled IoT devices with features like OTA updates, network management, monitoring capabilities, and web interfaces.
+
+## Version 0.10.0
+
+⚠️ **Breaking Changes**: This version introduces breaking changes from earlier versions, particularly in the web server implementation.
 
 ## Features
 
@@ -9,7 +13,10 @@ A comprehensive platform for building KNX applications for ESP8266/ESP32 devices
   - WiFi configuration via WiFiManager
   - MDNS support
   - Telnet debugging
-  - HTTP server capabilities
+- **Web Capabilities**:
+  - Static file web server with LittleFS
+  - WebSocket server for real-time updates
+  - Efficient chunked transfer encoding
 - **KNX Integration**:
   - Full KNX protocol support
   - Programming mode handling
@@ -40,13 +47,14 @@ A comprehensive platform for building KNX applications for ESP8266/ESP32 devices
 
 The library supports various build flags to customize functionality:
 
+- `FEATURE_WEB`: Enable web server functionality
+- `FEATURE_WEBS`: Enable WebSocket server
 - `NO_WIFI`: Disable WiFi functionality
 - `NO_NTP`: Disable NTP time synchronization
 - `NO_TELNET`: Disable Telnet debugging
 - `NO_KNX`: Disable KNX functionality
 - `NO_MDNS`: Disable MDNS support
 - `NO_OTA`: Disable OTA updates
-- `NO_HTTP`: Disable HTTP server
 - `NO_HEARTBEAT`: Disable heartbeat monitoring
 
 ### Platform-Specific Settings
@@ -90,6 +98,22 @@ public:
 MyKnxApp myApp;
 ```
 
+## Web Interface
+
+The library provides built-in support for web interfaces:
+
+1. Static File Server:
+   - Serves files from LittleFS
+   - Efficient chunked transfer encoding
+   - Maintains system responsiveness
+
+2. WebSocket Server:
+   - Real-time bidirectional communication
+   - Automatic client reconnection
+   - JSON message support
+
+See the [webpage example](examples/webpage/README.md) for a complete implementation.
+
 ## Dependencies
 
 - [ArduinoLog](https://github.com/thijse/Arduino-Log)
@@ -97,6 +121,7 @@ MyKnxApp myApp;
 - [TelnetStream](https://github.com/jandrassy/TelnetStream)
 - [KNX](https://github.com/thelsing/knx)
 - [WiFiManager](https://github.com/tzapu/WiFiManager)
+- [WebSockets](https://github.com/Links2004/arduinoWebSockets)
 
 ## Contributing
 
