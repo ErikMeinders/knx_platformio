@@ -1,3 +1,18 @@
+# [1.0.0](https://github.com/ErikMeinders/knx_platformio/compare/v0.10.1...v1.0.0) (2024-11-30)
+
+
+* feat!: rewrite web server implementation with chunked transfer ([bd31c77](https://github.com/ErikMeinders/knx_platformio/commit/bd31c776dd81b8838e66b754661059d5befe8b01))
+
+
+### Features
+
+* add WebSocket server support ([62300dc](https://github.com/ErikMeinders/knx_platformio/commit/62300dc39061b9f3cf56a64ea28371817412b0fe))
+
+
+### BREAKING CHANGES
+
+* Web server implementation has been completely rewritten
+
 ## [0.10.1](https://github.com/ErikMeinders/knx_platformio/compare/v0.10.0...v0.10.1) (2024-11-29)
 
 
