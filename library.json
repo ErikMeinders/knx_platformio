@@ -1,6 +1,6 @@
 {
   "name": "knx_platformio",
-  "version": "0.10.0",
+  "version": "1.0.3",
   "description": "A comprehensive platform for building KNX applications for ESP8266/ESP32 devices with advanced networking, web interfaces, OTA updates, and monitoring capabilities",
   "keywords": [
     "knx",
@@ -77,12 +77,34 @@
       "owner": "Links2004",
       "name": "WebSockets",
       "version": "^2.6.1"
+    },
+    {
+      "owner": "me-no-dev",
+      "name": "ESPAsyncTCP",
+      "version": "https://github.com/me-no-dev/ESPAsyncTCP.git",
+      "platforms": ["espressif8266"]
+    },
+    {
+      "owner": "me-no-dev",
+      "name": "AsyncTCP",
+      "version": "https://github.com/me-no-dev/AsyncTCP.git",
+      "platforms": ["espressif32"]
+    },
+    {
+      "owner": "me-no-dev",
+      "name": "ESPAsyncWebServer",
+      "version": "https://github.com/me-no-dev/ESPAsyncWebServer.git"
+    },
+    {
+      "owner": "alanswx",
+      "name": "ESPAsyncWiFiManager",
+      "version": "https://github.com/alanswx/ESPAsyncWiFiManager.git"
     }
   ],
   "build": {
     "libArchive": false,
     "flags": [
-      "-I$PROJECT_DIR/include"
+      "-I$LIBRARY_DIR/include"
     ]
   },
   "examples": [
