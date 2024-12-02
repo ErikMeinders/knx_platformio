@@ -1,4 +1,7 @@
 #include <knxp_platformio.h>
+#include <knxp_progress.h>
+#include <knxp_timeinfo.h>
+#include <knxp_heartbeat.h>
 
 Stream *stdIn = &Serial;
 Stream *stdOut = &Serial;
@@ -6,55 +9,6 @@ Stream *stdOut = &Serial;
 #ifdef FEATURE_WEB
 KNXWebServer webServer;
 #endif
-
-/**
- * @brief Initialize network-dependent services
- * @param step Progress step counter
- * @return Updated step counter
- */
-int initializeNetworkServices(int step) {
-    if (!isNetworkReady()) return step;
-
-    #ifndef NO_NTP
-        progress(step++, "Starting NTP");
-        timeInit();
-    #endif
-
-    #ifndef NO_TELNET
-        progress(step++, "Starting Telnet");
-        startTelnet();
-    #endif
-
-    #ifndef NO_MDNS
-        progress(step++, "Starting MDNS");
-        startMDNS(HOSTNAME);
-    #endif
-
-    #ifndef NO_OTA
-        progress(step++, "Starting OTA");
-        otaInit();
-    #endif
-
-    #ifdef FEATURE_WEB
-        progress(step++, "Starting Web Server");
-        if (!LittleFS.begin()) {
-            Log.error("Failed to mount LittleFS\n");
-            return step;
-        }
-        if (!webServer.begin()) {
-            Log.error("Failed to start web server\n");
-            return step;
-        }
-        Log.notice("Web server started\n");
-    #else
-        #ifndef NO_HTTP
-            progress(step++, "Starting HTTP");
-            httpServer.begin();
-        #endif
-    #endif
-
-    return step;
-}
 
 /**
  * @brief HiJack the Arduino setup() function
@@ -66,59 +20,58 @@ void _knxapp::setup() {
     Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
     // Initialize basic hardware
-    progress(step++, "Starting pin setup");
+    progress(step, "Starting pin setup");
     pinsetup();
+    step++;
 
     // Initialize networking
     #ifndef NO_WIFI
-        progress(step++, "Starting WiFi");
+        progress(step, "Starting WiFi");
         startWiFi(hostname());
+        step++;
     #endif
 
     // Initialize network-dependent services
-    step = initializeNetworkServices(step);
+    #ifndef NO_TELNET
+        if (isNetworkReady()) {
+            progress(step, "Starting Telnet");
+            startTelnet();
+            step++;
+            progress(step, "Starting MDNS");
+            startMDNS(hostname());
+            step++;
+        }
+    #endif
 
     #ifdef FEATURE_WEBS
-        progress(step++, "Starting WebSocket Server");
+        progress(step, "Starting WebSocket Server");
         if (!webSocketServer.begin()) {
             Log.error("Failed to start WebSocket server\n");
             return;
         }
         Log.notice("WebSocket server started\n");
+        step++;
     #endif
 
     // Initialize KNX
     #ifndef NO_KNX
-        progress(step++, "Starting KNX configuration");
+        progress(step, "Starting KNX configuration");
         conf();
+        step++;
     #endif
 
     // Initialize application
-    progress(step++, "Starting KNX Application Setup");
+    progress(step, "Starting KNX Application Setup");
     knx_setup();
+    step++;
 
     #ifndef NO_KNX   
-        progress(step++, "Starting KNX");
+        progress(step, "Starting KNX");
         knx.start();
+        step++;
     #endif
 
-    resetUptime();
     Log.trace("Platform Startup Completed at %s in %u ms.\n\n", timeNowString(), millis());
-}
-
-/**
- * @brief Process network-dependent services in the main loop
- */
-void processNetworkServices() {
-    if (!isNetworkReady()) return;
-
-    #ifndef NO_OTA
-        timeThis(otaLoop());
-    #endif
-
-    #ifdef FEATURE_WEB
-        timeThis(webServer.loop());
-    #endif
 }
 
 /**
@@ -135,20 +88,27 @@ void _knxapp::loop() {
     }
 
     #ifndef NO_HEARTBEAT
-        timeThis(handleHeartbeat());
+        handleHeartbeat();
     #endif   
 
     #ifndef NO_KNX
-        if (knx.progMode()) return; // shorteset possible loop
-        timeThis(cyclic());
+        if (knx.progMode()) return; // shortest possible loop
+        cyclic();
     #endif
 
     #ifndef NO_NETWORK
         processNetwork();  // Regular network connectivity check
-        processNetworkServices();
+    #endif
+
+    #ifdef FEATURE_WEB
+        if (webServer) {
+            webServer->loop();
+        }
     #endif
 
     #ifdef FEATURE_WEBS
-        timeThis(webSocketServer.loop());
+        if (webSocketServer) {
+            webSocketServer->loop();
+        }
     #endif
 }
