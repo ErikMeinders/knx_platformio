@@ -3,6 +3,8 @@
 
 #ifdef FEATURE_WEB
 
+#include "knxp_web_base.h"
+
 #ifdef ESP32
   #include <WebServer.h>
   using WebServerClass = WebServer;
@@ -11,31 +13,27 @@
   using WebServerClass = ESP8266WebServer;
 #endif
 
-#include <LittleFS.h>
-
 /**
- * Simple web server that serves static files from LittleFS.
- * 
- * Note: This uses the same LittleFS instance as your application.
- * If your application also uses LittleFS for config files:
- * - Both uses share the same filesystem space
- * - Multiple LittleFS.begin() calls are safe (it's a singleton)
- * - Just ensure web files don't have same names as your config files
+ * Synchronous web server implementation that serves static files from LittleFS.
  */
-class KNXWebServer {
+class KNXWebServer : public KNXWebServerBase {
 public:
-    KNXWebServer();
-    bool begin();
-    void loop();
+    KNXWebServer() : server(80) {}
+    bool begin() override;
+    void loop() override;
 
 private:
     WebServerClass server;
-    static const size_t CHUNKSIZE = 1024;
-    
     void handleFile(String path);
-    const char* getContentType(String filename);
+    const char* getContentType(const String& filename) override;
 };
 
-#define CHUNK_SIZE 1024
+#ifndef USE_ASYNC_WEB
+// Factory function implementation for sync version
+inline KNXWebServerBase* createWebServer() {
+    return new KNXWebServer();
+}
+#endif
+
 #endif // FEATURE_WEB
 #endif // KNXP_WEB_H

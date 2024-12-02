@@ -1,4 +1,5 @@
 #include "knxp_web.h"
+#include "knxp_yield.h"
 
 #ifdef FEATURE_WEB
 
@@ -12,12 +13,27 @@ bool KNXWebServer::begin() {
         }
         handleFile(path);
     });
-    printf("Started web server\n");
+    Log.notice("Started web server\n");
     server.begin();
     return true;
 }
 
 void KNXWebServer::loop() {
+    static unsigned long lastYield = 0;
+    static unsigned long lastCleanup = 0;
+    const unsigned long CLEANUP_INTERVAL = 30000; // 30 seconds
+
+    knxLoopYield(lastYield);
+
+    // Periodic cleanup
+    unsigned long now = millis();
+    if (now - lastCleanup >= CLEANUP_INTERVAL) {
+        // Force garbage collection
+        ESP.getFreeHeap();
+        Log.notice("Free heap: %d\n", ESP.getFreeHeap());
+        lastCleanup = now;
+    }
+
     server.handleClient();
 }
 
@@ -25,64 +41,58 @@ void KNXWebServer::handleFile(String path) {
     if (!path.startsWith("/")) {
         path = "/" + path;
     }
-    printf("Request for %s\n", path.c_str());
 
+    // Early return for non-existent files
     if (!LittleFS.exists(path)) {
+        Log.error("File Not Found: %s\n", path.c_str());
         server.send(404, "text/plain", "File Not Found");
         return;
     }
 
+    // Get file info before opening
     File file = LittleFS.open(path, "r");
     if (!file) {
+        Log.error("Failed to open file: %s\n", path.c_str());
         server.send(500, "text/plain", "Failed to open file");
         return;
     }
 
+    const size_t fileSize = file.size();
     const char* contentType = getContentType(path);
-    WiFiClient client = server.client();
-    
-    // Send minimal HTTP headers
-    client.print(F("HTTP/1.1 200 OK\r\n"));
-    client.printf("Content-Type: %s\r\n", contentType);
-    client.print(F("Transfer-Encoding: chunked\r\n"));
-    client.print(F("Connection: close\r\n"));
-    client.print(F("\r\n"));
-    
-    // Send file in chunks
-    uint8_t buffer[CHUNK_SIZE];
-    size_t totalBytesRead = 0;
-    size_t fileSize = file.size();
-    
-    while (totalBytesRead < fileSize) {
-        yield(); // Allow background tasks between chunks
-        
-        size_t bytesToRead = min(CHUNK_SIZE, (int)(fileSize - totalBytesRead));
-        size_t bytesRead = file.read(buffer, bytesToRead);
-        
-        if (bytesRead == 0) {
-            printf("Error reading file at position %d\n", totalBytesRead);
-            break;
-        }
-        
-        // Send chunk size
-        client.printf("%x\r\n", bytesRead);  // Lowercase hex, no leading zeros
-        
-        // Send chunk data
-        client.write(buffer, bytesRead);
-        client.print(F("\r\n"));
-        
-        totalBytesRead += bytesRead;
-        printf("Sent chunk: %d bytes\n", bytesRead);
-        
-        yield(); // Allow background tasks after sending chunk
+
+    // Log request details
+    Log.notice("Request: %s, Size: %d, Heap: %d\n", path.c_str(), fileSize, ESP.getFreeHeap());
+
+    // Set Cache-Control for static files
+    if (path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".ico")) {
+        server.sendHeader("Cache-Control", "public, max-age=31536000"); // 1 year
+    } else {
+        server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     }
+
+    // Enable compression for text files
+    const bool shouldCompress = server.client().localIP()[3] != 0 && // Skip for local network
+        (path.endsWith(".html") || path.endsWith(".css") || path.endsWith(".js"));
     
-    // Send final empty chunk
-    client.print(F("0\r\n\r\n"));
-    client.flush();
-    
+    if (shouldCompress) {
+        server.sendHeader("Content-Encoding", "gzip");
+    }
+
+    // Use ESP8266WebServer's built-in streaming
+    const size_t sent = server.streamFile(file, contentType);
     file.close();
-    printf("File transfer complete: %d bytes\n", totalBytesRead);
+
+    // Log completion status
+    if (sent != fileSize) {
+        Log.error("Incomplete transfer: %d of %d bytes for %s\n", sent, fileSize, path.c_str());
+    } else {
+        Log.notice("Sent %d bytes, Heap: %d\n", sent, ESP.getFreeHeap());
+    }
+
+    // Force cleanup after large transfers
+    if (fileSize > 1024) {
+        ESP.getFreeHeap(); // Trigger garbage collection
+    }
 }
 
 const char* KNXWebServer::getContentType(String filename) {
