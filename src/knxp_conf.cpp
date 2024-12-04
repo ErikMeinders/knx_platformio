@@ -17,7 +17,7 @@ void _knxapp::conf()
         while (!knx.configured())
         {
             yieldGuard.check();
-            if (stdIn->available())
+            if (console->available())
                 this->menu();
 
             knx.loop();
@@ -26,4 +26,3 @@ void _knxapp::conf()
         ESP.restart();
     }
 }
-

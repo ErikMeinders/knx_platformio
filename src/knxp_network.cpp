@@ -1,193 +1,154 @@
-#include "knxp_platformio.h"
+#include <knxp_platformio.h>
+#include <knxp_network.h>
+#include <knxp_timeinfo.h>
+#include <ArduinoLog.h>
 
-// Network status - file scope
-static bool networkReady = false;
+#ifndef NO_WIFI
 
-namespace {
-    // Network configuration constants
-    constexpr int DEFAULT_WIFI_TIMEOUT = 30;      // seconds
-    constexpr int AP_MODE_WIFI_TIMEOUT = 120;     // seconds
-    constexpr int PROG_BUTTON_LONG_PRESS = 100;   // 10 seconds (100 * 100ms)
-    constexpr int WIFI_RECONNECT_DELAY = 2000;    // milliseconds
-    constexpr int HTTP_PORT = 80;
+#ifdef USE_ASYNC_WEB
+#include <ESPAsyncWiFiManager.h>
+#include <ESPAsyncWebServer.h>
+#include <DNSServer.h>
+#else
+#include <WiFiManager.h>
+#endif
 
-    // WiFi status monitoring
-    unsigned long lastWiFiCheck = 0;
-    constexpr unsigned long WIFI_CHECK_INTERVAL = 30000; // 30 seconds
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#endif
 
-    /**
-     * @brief Check if the program button is pressed long enough for AP mode
-     * @return true if button pressed long enough for AP mode
-     */
-    bool checkForAPMode() {
-        int pressCount = 0;
-        while (digitalRead(PROGMODE_PIN) == LOW) {
-            delay(100);
-            pressCount++;
-            if (pressCount > PROG_BUTTON_LONG_PRESS) {
-                Log.info("PROG button pressed for more than 10 seconds, starting AP upon release\n");
-                return true;
-            }
-        }
-        return false;
-    }
+#ifdef USE_ASYNC_WEB
+static AsyncWiFiManager* wifiManager = nullptr;
+static AsyncWebServer* wifiConfigServer = nullptr;
+static DNSServer* asyncDNSServer = nullptr;
+#else
+static WiFiManager wifiManager;
+#endif
 
-    /**
-     * @brief Monitor WiFi connection status and attempt reconnection if needed
-     */
-    void monitorWiFiConnection() {
-        unsigned long now = millis();
-        if (now - lastWiFiCheck >= WIFI_CHECK_INTERVAL) {
-            lastWiFiCheck = now;
-            if (WiFi.status() != WL_CONNECTED) {
-                Log.warning("WiFi connection lost, attempting reconnection...\n");
-                WiFi.reconnect();
-            }
-        }
-    }
-}
+static unsigned long lastConnectionTime = 0;
+static bool waitingForStabilization = false;
 
-/**
- * @brief Get current network ready status
- * @return true if network is ready, false otherwise
- */
-bool isNetworkReady() {
-    return networkReady;
-}
-
-/**
- * @brief Initialize and start WiFi connection
- * @param hostname Device hostname for network identification
- * @details Handles both station and AP modes, with automatic fallback
- *          In NETWORK_ONDEMAND mode, only starts when PROG button is pressed
- */
-void startWiFi(const char *hostname) {
-    if (!hostname) {
-        Log.error("Invalid hostname provided\n");
-        return;
-    }
-
-    WiFiManager manageWiFi;
-    wifi_mode_t wifiMode = WIFI_STA;
-    int wifiTimeout = DEFAULT_WIFI_TIMEOUT;
-
-    #ifdef NETWORK_ONDEMAND
-        if (digitalRead(PROGMODE_PIN) != LOW) {
-            Log.info("PROG button not pressed, not starting WiFi\n");
-            return;
-        }
-        
-        Log.info("PROG button pressed, starting WiFi\n");
-        if (checkForAPMode()) {
-            wifiMode = WIFI_AP_STA;
-            wifiTimeout = AP_MODE_WIFI_TIMEOUT;
-        }
+bool startWiFi(const char* hostname) {
+    Log.notice("Starting WiFi setup for hostname: \"%s\"\n", hostname);
+    
+    // Set hostname before WiFi connection
+    #ifdef ESP8266
+    WiFi.hostname(hostname);
+    #elif defined(ESP32)
+    WiFi.setHostname(hostname);
     #endif
 
-    // Configure WiFi settings
-    String apName = String(hostname) + "-" + WiFi.macAddress();
-    WiFi.hostname(hostname);
-    WiFi.mode(wifiMode);
-
-    // Configure WiFiManager
-    manageWiFi.setDebugOutput(true);
-    manageWiFi.setHostname(hostname);
-    manageWiFi.setTimeout(wifiTimeout);
-
-    // Attempt connection
-    Log.info("Attempting WiFi connection...\n");
-    if (!manageWiFi.autoConnect(apName.c_str())) {
-        Log.fatal("Failed to connect and hit timeout\n");
-        delay(WIFI_RECONNECT_DELAY);
-        ESP.restart();
-        return;
+    #ifdef USE_ASYNC_WEB
+    // Create instances only when starting WiFi
+    if (!wifiConfigServer) {
+        wifiConfigServer = new AsyncWebServer(80);
+    }
+    if (!asyncDNSServer) {
+        asyncDNSServer = new DNSServer();
+    }
+    if (!wifiManager) {
+        wifiManager = new AsyncWiFiManager(wifiConfigServer, asyncDNSServer);
+    }
+    
+    // Configure WiFi manager
+    wifiManager->setDebugOutput(true);
+    wifiManager->setConfigPortalTimeout(180);
+    wifiManager->setConnectTimeout(30);
+    wifiManager->setBreakAfterConfig(true);  // Exit after saving settings
+    
+    // Try to connect using stored credentials
+    Log.notice("Using AsyncWiFiManager\n");
+    const char* autoConnectSSID = hostname;  // Use hostname as AP name
+    if (wifiManager->autoConnect(autoConnectSSID)) {
+    #else
+    Log.notice("Using WiFiManager\n");
+    wifiManager.setDebugOutput(true);
+    wifiManager.setConfigPortalTimeout(180);
+    if (wifiManager.autoConnect()) {
+    #endif
+        // Start connection stabilization period
+        lastConnectionTime = millis();
+        waitingForStabilization = true;
+        return true;
     }
 
-    Log.info("Connected with IP-address [%s]\n", WiFi.localIP().toString().c_str());
-    networkReady = true;
+    Log.error("Failed to connect to WiFi\n");
+    return false;
+}
+
+bool isNetworkReady() {
+    if (waitingForStabilization) {
+        if (millis() - lastConnectionTime >= 500) {  // 500ms stabilization period
+            waitingForStabilization = false;
+            if (WiFi.status() == WL_CONNECTED) {
+                Log.notice("WiFi connected - SSID: %s, IP: %s, Channel: %d, RSSI: %d\n",
+                    WiFi.SSID().c_str(),
+                    WiFi.localIP().toString().c_str(),
+                    WiFi.channel(),
+                    WiFi.RSSI()
+                );
+
+                Log.notice("Network interface details:\n");
+                Log.notice("  MAC Address: %s\n", WiFi.macAddress().c_str());
+                Log.notice("  Subnet Mask: %s\n", WiFi.subnetMask().toString().c_str());
+                Log.notice("  Gateway IP: %s\n", WiFi.gatewayIP().toString().c_str());
+                Log.notice("  DNS Server: %s\n", WiFi.dnsIP().toString().c_str());
+
+                #ifndef NO_TELNET
+                // Start telnet after network is stable
+                startTelnet();
+                #endif
+            }
+        }
+        return false;  // Not ready during stabilization
+    }
+    return WiFi.status() == WL_CONNECTED;
+}
+
+void processNetwork() {
+    static uint32_t lastCheck = 0;
+    uint32_t now = millis();
+
+    // Check connection every 30 seconds
+    if (now - lastCheck > 30000) {
+        lastCheck = now;
+        if (WiFi.status() != WL_CONNECTED) {
+            Log.warning("WiFi connection lost, attempting to reconnect...\n");
+            WiFi.reconnect();
+            #ifndef NO_TELNET
+            console = &Serial;  // Switch back to Serial during reconnection
+            Log.begin(LOG_LEVEL, console);
+            #endif
+        }
+    }
 }
 
 #ifndef NO_TELNET
-/**
- * @brief Initialize and start Telnet server
- * @details Configures Telnet for remote debugging and monitoring
- *          When STDIO_TELNET is defined, redirects standard I/O to Telnet
- */
+#include <TelnetStream.h>
+
 void startTelnet() {
-    if (!isNetworkReady()) {
-        Log.error("Cannot start Telnet: Network not ready\n");
-        return;
-    }
-
     TelnetStream.begin();
-    Log.trace("Telnet server started\n");
-
-    #ifdef STDIO_TELNET
-        stdIn = &TelnetStream;
-        stdOut = &TelnetStream;
-        Log.begin(LOG_LEVEL_VERBOSE, &TelnetStream);
-    #endif
+    Log.notice("Console about to switch to telnet\n");
+    console = &TelnetStream;  // Switch console to TelnetStream
+    Log.begin(LOG_LEVEL, console);  // Update logger to use TelnetStream
+    Log.notice("Telnet server started\n");
 }
 #endif
 
-/**
- * @brief Initialize and start mDNS responder
- * @param hostname Device hostname for mDNS resolution
- * @details Sets up mDNS for local network device discovery
- *          Advertises HTTP service on port 80
- */
-void startMDNS(const char *hostname) {
-    if (!isNetworkReady()) {
-        Log.error("Cannot start mDNS: Network not ready\n");
-        return;
-    }
-
-    if (!hostname) {
-        Log.error("Invalid hostname provided for mDNS\n");
-        return;
-    }
-
-    Log.info("Setting up mDNS as [%s.local]\n", hostname);
-    
-    if (!MDNS.begin(hostname)) {
-        Log.error("Failed to start mDNS responder!\n");
-        return;
-    }
-
-    MDNS.addService("http", "tcp", HTTP_PORT);
-    Log.trace("mDNS responder started successfully\n");
-}
-
-/**
- * @brief Process network-related tasks
- * @details Should be called regularly from the main loop
- *          Handles WiFi connection monitoring and recovery
- */
-void processNetwork() {
-    if (isNetworkReady()) {
-        monitorWiFiConnection();
+#ifndef NO_MDNS
+void startMDNS(const char* hostname) {
+    Log.notice("Starting mDNS with hostname: \"%s\"\n", hostname);
+    if (MDNS.begin(hostname)) {
+        MDNS.addService("http", "tcp", 80);
+        Log.notice("mDNS responder started at \"%s\".local\n", hostname);
+    } else {
+        Log.error("Error setting up MDNS responder\n");
     }
 }
+#endif
 
-/***************************************************************************
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to permit
- * persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
- * OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
- * THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- ***************************************************************************/
+#endif // NO_WIFI

@@ -22,20 +22,23 @@ void submenuline(char mode, int base)
 void _knxapp::menu()
 {
     KnxYieldGuard yieldGuard;
-    byte b = stdIn->read();
     const static char valid[] = "?zabcPGESTV0123456789";
+    static char mode = 'P';
+    static int base = 0;
 
+    if (!console->available()) {
+        return;
+    }
+
+    byte b = console->read();
     while (strchr(valid, b) == NULL)
     {
         yieldGuard.check();
-        if (stdIn->available())
-            b = stdIn->read();
+        if (console->available())
+            b = console->read();
         else
             return;
     }
-
-    static char mode = 'P';
-    static int base = 0;
 
     switch (b)
     {

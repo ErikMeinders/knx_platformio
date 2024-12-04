@@ -12,6 +12,7 @@ class knxapp : public _knxapp
     void loop() override;
     void status() override;
     void knx_setup() override;
+    virtual void handleWebSocketMessage(uint8_t num, uint8_t* payload, size_t length) { return; }
 
   private:
     unsigned long xx = 0;

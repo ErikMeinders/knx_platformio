@@ -1,38 +1,41 @@
 #ifndef KNXP_WEB_ASYNC_H
 #define KNXP_WEB_ASYNC_H
 
-#ifdef FEATURE_WEB
+#if defined(FEATURE_WEB) && defined(USE_ASYNC_WEB)
 
+#include <Arduino.h>
 #include "knxp_web_base.h"
+#include "knxp_async_wrapper.h"
+#include <ESPAsyncWebServer.h>
+#include <LittleFS.h>
+#include <ArduinoLog.h>
 
-#ifdef ESP32
-  #include <AsyncWebServer.h>
-  #include <AsyncTCP.h>
-  using AsyncWebServerClass = AsyncWebServer;
-#else
-  #include <ESPAsyncTCP.h>
-  #include <ESPAsyncWebServer.h>
-  using AsyncWebServerClass = AsyncWebServer;
-#endif
-
-// HTTP method definitions
-#define KNX_HTTP_GET HTTP_GET
-#define KNX_HTTP_POST HTTP_POST
+using AsyncWebServerClass = AsyncWebServer;
 
 /**
  * Async web server implementation that serves static files from LittleFS.
  */
 class KNXAsyncWebServer : public KNXWebServerBase {
 public:
-    KNXAsyncWebServer();
+    KNXAsyncWebServer() : server(80), serverInitialized(false) {
+        Log.notice("Created async web server instance\n");
+    }
+
     bool begin() override;
     void loop() override;
 
     // Get the underlying server instance (for WebSocket attachment)
-    AsyncWebServerClass* getServer() { return &server; }
+    AsyncWebServerClass* getServer() { 
+        if (!serverInitialized) {
+            Log.error("Attempting to get server before initialization\n");
+            return nullptr;
+        }
+        return &server; 
+    }
 
 private:
     AsyncWebServerClass server;
+    bool serverInitialized;
     
     void setupHandlers();
     void handleFile(AsyncWebServerRequest *request);
@@ -40,12 +43,27 @@ private:
     const char* getContentType(const String& filename) override;
 };
 
-#ifdef USE_ASYNC_WEB
 // Factory function implementation for async version
 inline KNXWebServerBase* createWebServer() {
-    return new KNXAsyncWebServer();
-}
-#endif
+    if (!WiFi.isConnected()) {
+        Log.error("Cannot create web server before WiFi is connected\n");
+        return nullptr;
+    }
 
-#endif // FEATURE_WEB
+    static KNXAsyncWebServer* instance = nullptr;
+    if (!instance) {
+        instance = new KNXAsyncWebServer();
+        Log.notice("Created new web server instance\n");
+    } else {
+        Log.notice("Returning existing web server instance\n");
+    }
+
+    // Store in global variable for other components to access
+    extern KNXWebServerBase* webServer;
+    webServer = instance;
+    
+    return instance;
+}
+
+#endif // FEATURE_WEB && USE_ASYNC_WEB
 #endif // KNXP_WEB_ASYNC_H

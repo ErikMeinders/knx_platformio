@@ -10,9 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.hostname}:81`;
         
+        console.log('Connecting to WebSocket:', wsUrl);
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
+            console.log('WebSocket connected');
             connectionStatus.textContent = 'Connected';
             connectionStatus.classList.add('connected');
             connectionStatus.classList.remove('disconnected');
@@ -20,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         ws.onclose = () => {
+            console.log('WebSocket disconnected');
             connectionStatus.textContent = 'Disconnected';
             connectionStatus.classList.add('disconnected');
             connectionStatus.classList.remove('connected');
@@ -39,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         ws.onmessage = (event) => {
+            console.log('WebSocket message:', event.data);
             try {
                 const data = JSON.parse(event.data);
                 if (data.temperature !== undefined) {

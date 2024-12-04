@@ -17,6 +17,8 @@
 class KNXAsyncWebSocketServer : public KNXWebSocketServerBase {
 public:
     KNXAsyncWebSocketServer(KNXAsyncWebServer& webServer);
+    virtual ~KNXAsyncWebSocketServer() {}
+
     bool begin() override;
     void loop() override;
     void broadcast(const char* payload) override;
@@ -28,28 +30,50 @@ public:
     }
 
 private:
-    AsyncWebSocket ws;
+    KNXAsyncWebServer& webServer;  // Reference to web server must be first
+    AsyncWebSocket ws;             // WebSocket instance
     WebSocketMessageHandler messageHandler;
-    uint8_t connectedClients;
-    KNXAsyncWebServer& webServer;
+    volatile uint8_t connectedClients;
+    unsigned long lastBroadcastTime;  // For rate limiting broadcasts
 
     void handleEvent(AsyncWebSocket* server, 
                     AsyncWebSocketClient* client, 
-                    AwsEventType type, 
+                    AwsEventType type,
                     void* arg, 
                     uint8_t* data, 
                     size_t len);
-
     void cleanupConnections();
     void logEvent(AsyncWebSocketClient* client, AwsEventType type, const char* message = nullptr);
-    void handleJsonMessage(AsyncWebSocketClient* client, const char* data, size_t len);
+    void processMessage(AsyncWebSocketClient* client, uint8_t* data, size_t len);
+    void sendInitialState(AsyncWebSocketClient* client);
 };
 
 #ifdef USE_ASYNC_WEB
 // Factory function implementation for async version
 inline KNXWebSocketServerBase* createWebSocketServer() {
-    auto webServer = static_cast<KNXAsyncWebServer*>(createWebServer());
-    return new KNXAsyncWebSocketServer(*webServer);
+    // Get the web server instance
+    extern KNXWebServerBase* webServer;
+    if (!webServer) {
+        Log.error("Web server not initialized when creating WebSocket server\n");
+        return nullptr;
+    }
+
+    // Verify web server is initialized
+    auto asyncWebServer = static_cast<KNXAsyncWebServer*>(webServer);
+    if (!asyncWebServer || !asyncWebServer->getServer()) {
+        Log.error("Web server not properly initialized\n");
+        return nullptr;
+    }
+
+    // Create and return WebSocket server instance
+    static KNXAsyncWebSocketServer* instance = nullptr;
+    if (!instance) {
+        instance = new KNXAsyncWebSocketServer(*asyncWebServer);
+        Log.notice("Created new WebSocket server instance\n");
+    } else {
+        Log.notice("Returning existing WebSocket server instance\n");
+    }
+    return instance;
 }
 #endif
 

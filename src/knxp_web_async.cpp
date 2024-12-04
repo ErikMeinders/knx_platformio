@@ -1,133 +1,116 @@
+#if defined(FEATURE_WEB) && defined(USE_ASYNC_WEB)
+
 #include "knxp_web_async.h"
-#include "knxp_yield.h"
-
-#ifdef FEATURE_WEB
-
-KNXAsyncWebServer::KNXAsyncWebServer() : server(80) {}
+#include <Arduino.h>
+#include <LittleFS.h>
+#include <ArduinoLog.h>
 
 bool KNXAsyncWebServer::begin() {
+    Log.notice("Starting async web server initialization\n");
+    
+    if (!WiFi.isConnected()) {
+        Log.error("Cannot start web server before WiFi is connected\n");
+        return false;
+    }
+
+    if (!LittleFS.begin()) {
+        Log.error("Failed to mount LittleFS\n");
+        return false;
+    }
+    Log.notice("LittleFS mounted successfully\n");
+
     setupHandlers();
     server.begin();
-    Log.notice("Started async web server\n");
+    serverInitialized = true;  // Set flag after successful initialization
+    Log.notice("Async web server started on port 80\n");
     return true;
 }
 
 void KNXAsyncWebServer::loop() {
-    // No active loop needed for async server
-    static unsigned long lastCleanup = 0;
-    const unsigned long CLEANUP_INTERVAL = 30000; // 30 seconds
-
-    // Periodic cleanup
-    unsigned long now = millis();
-    if (now - lastCleanup >= CLEANUP_INTERVAL) {
-        // Force garbage collection
-        ESP.getFreeHeap();
-        Log.notice("Free heap: %d\n", ESP.getFreeHeap());
-        lastCleanup = now;
-    }
+    // No active processing needed for async server
 }
 
 void KNXAsyncWebServer::setupHandlers() {
-    // Serve static files from LittleFS
-    server.onNotFound([this](AsyncWebServerRequest *request) {
-        String path = request->url();
-        if (path.endsWith("/")) {
-            path += "index.html";
-        }
+    // Add CORS headers to all responses
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+
+    // Handle root and index.html explicitly
+    server.on("/", HTTP_GET, [this](AsyncWebServerRequest *request) {
         handleFile(request);
     });
 
-    // Add cache headers for static files using regex patterns
-    server.on("\\.js$", KNX_HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response = request->beginResponse(200);
-        response->addHeader("Cache-Control", "public, max-age=31536000");
-        request->send(response);
+    server.on("/index.html", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        handleFile(request);
     });
-    
-    server.on("\\.css$", KNX_HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response = request->beginResponse(200);
-        response->addHeader("Cache-Control", "public, max-age=31536000");
-        request->send(response);
-    });
-    
-    server.on("\\.ico$", KNX_HTTP_GET, [](AsyncWebServerRequest *request) {
-        AsyncWebServerResponse *response = request->beginResponse(200);
-        response->addHeader("Cache-Control", "public, max-age=31536000");
-        request->send(response);
+
+    // Let the library handle all other files
+    server.serveStatic("/", LittleFS, "/")
+        .setDefaultFile("index.html")
+        .setCacheControl("no-cache");
+
+    // Handle 404s
+    server.onNotFound([this](AsyncWebServerRequest *request) {
+        request->send(404, "text/plain", "File Not Found");
     });
 }
 
 void KNXAsyncWebServer::handleFile(AsyncWebServerRequest *request) {
     String path = request->url();
-    if (!path.startsWith("/")) {
-        path = "/" + path;
+    if (path == "/" || path.isEmpty()) {
+        path = "/index.html";
     }
 
-    // Early return for non-existent files
     if (!LittleFS.exists(path)) {
-        Log.error("File Not Found: %s\n", path.c_str());
         request->send(404, "text/plain", "File Not Found");
         return;
     }
 
     File file = LittleFS.open(path, "r");
     if (!file) {
-        Log.error("Failed to open file: %s\n", path.c_str());
         request->send(500, "text/plain", "Failed to open file");
         return;
     }
 
     const size_t fileSize = file.size();
-    logRequest(request, path, fileSize);
+    file.close();
 
-    // Create response with proper content type
     AsyncWebServerResponse *response = request->beginResponse(LittleFS, path, getContentType(path));
-
-    // Add caching headers for static assets
-    if (path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".ico")) {
-        response->addHeader("Cache-Control", "public, max-age=31536000");
-    } else {
-        response->addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    }
-
-    // Enable compression for text files
-    const bool shouldCompress = 
-        request->client()->localIP()[3] != 0 && // Skip for local network
-        (path.endsWith(".html") || path.endsWith(".css") || path.endsWith(".js"));
-
-    if (shouldCompress) {
-        response->addHeader("Content-Encoding", "gzip");
-    }
+    response->addHeader("Cache-Control", "no-cache");
+    response->addHeader("Connection", "close");
+    response->setContentLength(fileSize);
 
     request->send(response);
+    logRequest(request, path, fileSize);
+}
 
-    // Log completion and cleanup
-    Log.notice("Sent %s, Size: %d, Heap: %d\n", 
-        path.c_str(), fileSize, ESP.getFreeHeap());
-
-    // Force cleanup after large transfers
-    if (fileSize > 1024) {
-        ESP.getFreeHeap(); // Trigger garbage collection
+void KNXAsyncWebServer::logRequest(AsyncWebServerRequest *request, const String& path, size_t size) {
+    String method = "UNKNOWN";
+    switch (request->method()) {
+        case HTTP_GET: method = "GET"; break;
+        case HTTP_POST: method = "POST"; break;
+        case HTTP_DELETE: method = "DELETE"; break;
+        case HTTP_PUT: method = "PUT"; break;
+        case HTTP_PATCH: method = "PATCH"; break;
+        case HTTP_HEAD: method = "HEAD"; break;
+        case HTTP_OPTIONS: method = "OPTIONS"; break;
     }
+    Log.notice("HTTP %s %s (%d bytes)\n", method.c_str(), path.c_str(), size);
 }
 
 const char* KNXAsyncWebServer::getContentType(const String& filename) {
     if (filename.endsWith(".html")) return "text/html";
     if (filename.endsWith(".css")) return "text/css";
     if (filename.endsWith(".js")) return "application/javascript";
-    if (filename.endsWith(".json")) return "application/json";
     if (filename.endsWith(".ico")) return "image/x-icon";
-    if (filename.endsWith(".png")) return "image/png";
-    if (filename.endsWith(".jpg")) return "image/jpeg";
+    if (filename.endsWith(".gz")) {
+        const int index = filename.lastIndexOf('.');
+        if (index > 0) {
+            return getContentType(filename.substring(0, index));
+        }
+    }
     return "text/plain";
 }
 
-void KNXAsyncWebServer::logRequest(AsyncWebServerRequest *request, const String& path, size_t size) {
-    Log.notice("Request: %s %s, Size: %d, Heap: %d\n", 
-        request->methodToString(),
-        path.c_str(), 
-        size,
-        ESP.getFreeHeap());
-}
-
-#endif // FEATURE_WEB
+#endif // FEATURE_WEB && USE_ASYNC_WEB

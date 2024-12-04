@@ -27,7 +27,7 @@
 #endif
 
 // Forward declarations
-extern Stream* stdIn;
+extern Stream* console;  // Single stream for both input and output
 extern void knxYield();
 extern const char* timeNowString();
 extern const char* uptime();
@@ -49,6 +49,7 @@ class _knxapp {
     void cyclic();
     virtual char *hostname();
     virtual void status();
+    virtual void handleWebSocketMessage(uint8_t num, uint8_t* payload, size_t length) = 0;
 
     void setCyclicTimer(unsigned long interval);
     void setGroupObjectCount(int count) { _groupObjectCount = count; }

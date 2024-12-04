@@ -6,7 +6,9 @@
 
 // Combined yield and heartbeat function
 inline void knxYield() {
+#ifndef USE_ASYNC_WEB
     yield();  // System yield
+#endif
 #ifndef NO_HEARTBEAT
     handleHeartbeat();  // Handle heartbeat
 #endif

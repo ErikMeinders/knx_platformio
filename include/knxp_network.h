@@ -2,104 +2,44 @@
 #define KNXP_NETWORK_H
 
 #include <Arduino.h>
-#include <knxp_espcompat.h>
-#include <WiFiManager.h>
-#ifndef NO_TELNET
-#include <TelnetStream.h>
-#endif
 
+#ifndef NO_WIFI
 /**
- * @file knxp_network.h
- * @brief Network management functionality for KNX PlatformIO
+ * @brief Start WiFi connection
  * 
- * This module handles WiFi connectivity, Telnet debugging, and mDNS services.
- * It supports both station and access point modes, with automatic fallback
- * and connection monitoring.
+ * @param hostname The hostname to use for the device
+ * @return true if connection successful, false otherwise
  */
+bool startWiFi(const char *hostname);
 
 /**
- * @brief Get current network ready status
+ * @brief Check if network is ready
+ * 
  * @return true if network is ready, false otherwise
  */
 bool isNetworkReady();
 
 /**
- * @brief Initialize and start WiFi connection
- * 
- * @param hostname Device hostname for network identification
- * 
- * @details
- * - In normal mode, attempts to connect to configured WiFi network
- * - In NETWORK_ONDEMAND mode, only starts when PROG button is pressed
- * - Supports fallback to AP mode for configuration
- * - Automatically restarts device on connection timeout
- * 
- * Usage example:
- * @code
- * startWiFi("my-device");
- * @endcode
+ * @brief Process network tasks
+ * Called from loop() to handle network maintenance
  */
-void startWiFi(const char *hostname);
+void processNetwork();
 
 #ifndef NO_TELNET
 /**
- * @brief Initialize and start Telnet server
- * 
- * @details
- * - Enables remote debugging and monitoring via Telnet
- * - When STDIO_TELNET is defined, redirects standard I/O to Telnet
- * - Requires active network connection
- * 
- * Usage example:
- * @code
- * if (isNetworkReady()) startTelnet();
- * @endcode
+ * @brief Start telnet server
  */
 void startTelnet();
 #endif
 
+#ifndef NO_MDNS
 /**
- * @brief Initialize and start mDNS responder
+ * @brief Start mDNS responder
  * 
- * @param hostname Device hostname for mDNS resolution
- * 
- * @details
- * - Sets up mDNS for local network device discovery
- * - Advertises HTTP service on port 80
- * - Requires active network connection
- * - Device will be accessible as hostname.local
- * 
- * Usage example:
- * @code
- * if (isNetworkReady()) startMDNS("my-device");
- * @endcode
+ * @param hostname The hostname to use for mDNS
  */
 void startMDNS(const char *hostname);
-
-/**
- * @brief Process network-related tasks
- * 
- * @details
- * - Monitors WiFi connection status
- * - Attempts automatic reconnection when needed
- * - Should be called regularly from the main loop
- * 
- * Usage example:
- * @code
- * void loop() {
- *     processNetwork();
- *     // other loop tasks
- * }
- * @endcode
- */
-void processNetwork();
-
-#ifndef NO_HTTP
-/**
- * @brief Global HTTP server instance
- * @details Available when NO_HTTP is not defined
- */
-extern WebServer httpServer;
 #endif
 
+#endif // NO_WIFI
 #endif // KNXP_NETWORK_H

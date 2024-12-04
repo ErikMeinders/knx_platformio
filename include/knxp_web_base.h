@@ -1,37 +1,37 @@
 #ifndef KNXP_WEB_BASE_H
 #define KNXP_WEB_BASE_H
 
-#ifdef FEATURE_WEB
-
-#include <LittleFS.h>
-#include <ArduinoLog.h>
+#include <Arduino.h>
 
 /**
- * Base interface class for web server functionality.
- * This allows switching between sync and async implementations
- * based on compile flags.
+ * Base class for web server implementations.
+ * Provides common interface for both synchronous and asynchronous servers.
  */
 class KNXWebServerBase {
 public:
     virtual ~KNXWebServerBase() = default;
+    
+    /**
+     * Initialize and start the web server
+     * @return true if server started successfully
+     */
     virtual bool begin() = 0;
+    
+    /**
+     * Process server tasks in main loop
+     */
     virtual void loop() = 0;
 
 protected:
-    virtual const char* getContentType(const String& filename) {
-        if (filename.endsWith(".html")) return "text/html";
-        if (filename.endsWith(".css")) return "text/css";
-        if (filename.endsWith(".js")) return "application/javascript";
-        if (filename.endsWith(".json")) return "application/json";
-        if (filename.endsWith(".ico")) return "image/x-icon";
-        if (filename.endsWith(".png")) return "image/png";
-        if (filename.endsWith(".jpg")) return "image/jpeg";
-        return "text/plain";
-    }
+    /**
+     * Get content type based on file extension
+     * @param filename File name to get content type for
+     * @return Content type string
+     */
+    virtual const char* getContentType(const String& filename) = 0;
 };
 
-// Forward declare the factory function
+// Factory function declaration
 KNXWebServerBase* createWebServer();
 
-#endif // FEATURE_WEB
 #endif // KNXP_WEB_BASE_H

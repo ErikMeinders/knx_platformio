@@ -38,13 +38,8 @@ int initializeNetworkServices(int step) {
             Log.error("Failed to mount LittleFS\n");
             return step;
         }
-        if (!webServer.begin()) {
-            Log.error("Failed to start web server\n");
-            return step;
-        }
         Log.notice("Web server started\n");
         step++;
-    
     #endif
 
     return step;
@@ -58,9 +53,5 @@ void processNetworkServices() {
 
     #ifndef NO_OTA
         otaLoop();
-    #endif
-
-    #ifdef FEATURE_WEB
-        webServer.loop();
     #endif
 }

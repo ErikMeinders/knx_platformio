@@ -29,6 +29,8 @@ void _knxapp::pinsetup()
 {
     // put your pin setup code here, to run once before platform setup:
 
+    Log.info("[platform] pinsetup\n");
+
     // pin or GPIO the programming led is connected to. Default is LED_BUILTIN
     knx.ledPin(LED_BUILTIN);
 
@@ -39,25 +41,10 @@ void _knxapp::pinsetup()
     knx.buttonPin(PROGMODE_PIN);
     pinMode(PROGMODE_PIN, INPUT_PULLUP);
 
-    Log.info("Button pin: %d\n", knx.buttonPin());
+    Log.info("[platform] KNX Program Button pin: %d\n", knx.buttonPin());
 #ifndef NO_HEARTBEAT
     pinMode(PIN_HEARTBEAT, OUTPUT);
-#endif
-
-#ifdef FEATURE_WEB
-    // Create web server instance using factory function
-    webServer = createWebServer();
-    if (webServer) {
-        webServer->begin();
-    }
-#endif
-
-#ifdef FEATURE_WEBS
-    // Create websocket server instance using factory function
-    webSocketServer = createWebSocketServer();
-    if (webSocketServer) {
-        webSocketServer->begin();
-    }
+    Log.info("[platform] Heartbeat pin: %d\n", PIN_HEARTBEAT);
 #endif
 }
 

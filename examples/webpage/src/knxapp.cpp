@@ -28,7 +28,9 @@ void knxapp::loop()
         temp += 0.1;
         if (temp > 25.0) temp = 19.0;
         
-        _knxapp::webSocketServer.broadcast(json.c_str());
+        if (_knxapp::webSocketServer) {
+            _knxapp::webSocketServer->broadcast(json.c_str());
+        }
     }
 #endif
 }

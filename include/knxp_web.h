@@ -3,15 +3,13 @@
 
 #ifdef FEATURE_WEB
 
-#include "knxp_web_base.h"
-
+#include <Arduino.h>
 #ifdef ESP32
-  #include <WebServer.h>
-  using WebServerClass = WebServer;
+#include <WebServer.h>
 #else
-  #include <ESP8266WebServer.h>
-  using WebServerClass = ESP8266WebServer;
+#include <ESP8266WebServer.h>
 #endif
+#include "knxp_web_base.h"
 
 /**
  * Synchronous web server implementation that serves static files from LittleFS.
@@ -23,7 +21,15 @@ public:
     void loop() override;
 
 private:
-    WebServerClass server;
+    #ifdef ESP32
+    WebServer server;
+    #else
+    ESP8266WebServer server;
+    #endif
+    
+    void setupHandlers();
+    void handleRoot();
+    void handleNotFound();
     void handleFile(String path);
     const char* getContentType(const String& filename) override;
 };

@@ -1,126 +1,127 @@
-#include "knxp_webs_async.h"
+#if defined(FEATURE_WEB) && defined(USE_ASYNC_WEB)
 
-#ifdef FEATURE_WEBS
+#include "knxp_webs_async.h"
+#include <ArduinoLog.h>
+#include <ArduinoJson.h>
 
 KNXAsyncWebSocketServer::KNXAsyncWebSocketServer(KNXAsyncWebServer& webServer)
-    : ws("/ws"), connectedClients(0), webServer(webServer) {
+    : webServer(webServer)
+    , ws("/ws")
+    , messageHandler(nullptr)
+    , connectedClients(0)
+    , lastBroadcastTime(0)
+{
+    Log.notice("Creating WebSocket server instance\n");
     
     // Set up WebSocket event handler
-    ws.onEvent([this](AsyncWebSocket* server, AsyncWebSocketClient* client, 
-                     AwsEventType type, void* arg, uint8_t* data, size_t len) {
-        this->handleEvent(server, client, type, arg, data, len);
+    ws.onEvent([this](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+        handleEvent(server, client, type, arg, data, len);
     });
 
-    // Add WebSocket handler to web server
-    auto server = webServer.getServer();
-    server->addHandler(&ws);
+    // Clean start
+    ws.cleanupClients();
+    
+    Log.notice("WebSocket event handler registered\n");
 }
 
 bool KNXAsyncWebSocketServer::begin() {
-    Log.notice("WebSocket server started on port 81\n");
+    Log.notice("Starting async WebSocket server\n");
+    
+    AsyncWebServer* server = webServer.getServer();
+    if (!server) {
+        Log.error("Web server not initialized\n");
+        return false;
+    }
+    
+    // Register WebSocket handler
+    server->addHandler(&ws);
+    
+    Log.notice("WebSocket handler registered at /ws\n");
     return true;
 }
 
 void KNXAsyncWebSocketServer::loop() {
-    static unsigned long lastCleanup = 0;
-    const unsigned long CLEANUP_INTERVAL = 30000; // 30 seconds
+    // No active processing needed for async server
+}
 
-    // Periodic cleanup
+void KNXAsyncWebSocketServer::broadcast(const char* data) {
+    if (!data) {
+        Log.error("Broadcast data is null\n");
+        return;
+    }
+
+    size_t len = strlen(data);
+    if (len == 0 || len > 2048) {  // Sanity check message size
+        Log.error("Invalid broadcast data length: %u\n", len);
+        return;
+    }
+
+    // Rate limit broadcasts
     unsigned long now = millis();
-    if (now - lastCleanup >= CLEANUP_INTERVAL) {
-        cleanupConnections();
-        lastCleanup = now;
+    if (now - lastBroadcastTime < 100) { // Minimum 100ms between broadcasts
+        return;
     }
-}
+    lastBroadcastTime = now;
 
-void KNXAsyncWebSocketServer::broadcast(const char* payload) {
+    connectedClients = ws.count();
     if (connectedClients > 0) {
-        ws.textAll(payload);
+        // For large messages, use async message queue
+        if (len > 512) {
+            // Create a copy of the data that will persist until sent
+            char* asyncData = new char[len + 1];
+            memcpy(asyncData, data, len);
+            asyncData[len] = '\0';
+            
+            // Send data and clean up after sending
+            ws.textAll(asyncData, len);
+            delete[] asyncData;
+        } else {
+            // Small messages can be sent directly
+            ws.textAll(data, len);
+        }
     }
 }
 
-void KNXAsyncWebSocketServer::handleEvent(AsyncWebSocket* server, 
-                                        AsyncWebSocketClient* client, 
-                                        AwsEventType type, 
-                                        void* arg, 
-                                        uint8_t* data, 
-                                        size_t len) {
+void KNXAsyncWebSocketServer::handleEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, 
+                                        AwsEventType type, void *arg, uint8_t *data, size_t len) {
+    if (!client) {
+        return;
+    }
+
     switch (type) {
-        case WS_EVT_CONNECT:
-            if (connectedClients < MAX_WS_CLIENTS) {
-                connectedClients++;
-                logEvent(client, type, "Client connected");
-            } else {
-                // Too many clients, close connection
-                client->close();
-                Log.warning("Max clients reached, connection refused\n");
+        case WS_EVT_CONNECT: {
+            connectedClients++;
+            Log.notice("Client #%u connected from %s\n", 
+                      client->id(), client->remoteIP().toString().c_str());
+            
+            // Send initial state
+            static const char* initialState = "{\"type\":\"initial\",\"timestamp\":0}";
+            client->text(initialState);
+            break;
+        }
+        case WS_EVT_DISCONNECT: {
+            if (connectedClients > 0) {
+                connectedClients--;
             }
+            Log.notice("Client #%u disconnected\n", client->id());
             break;
-
-        case WS_EVT_DISCONNECT:
-            connectedClients--;
-            logEvent(client, type, "Client disconnected");
-            break;
-
-        case WS_EVT_ERROR:
-            logEvent(client, type, "Error");
-            break;
-
-        case WS_EVT_PONG:
-            logEvent(client, type, "Pong");
-            break;
-
-        case WS_EVT_DATA:
-            AwsFrameInfo* info = (AwsFrameInfo*)arg;
-            if (info->final && info->index == 0 && info->len == len) {
+        }
+        case WS_EVT_DATA: {
+            AwsFrameInfo *info = (AwsFrameInfo*)arg;
+            if (messageHandler && len > 0 && len <= 2048 &&  // Size limit check
+                info->final && info->index == 0 && info->len == len) {
                 // Complete message received
-                if (info->opcode == WS_TEXT) {
-                    // Null terminate the data for string handling
-                    data[len] = 0;
-                    handleJsonMessage(client, (char*)data, len);
-                }
+                messageHandler(client->id(), data, len);
             }
+            break;
+        }
+        case WS_EVT_ERROR: {
+            Log.error("WebSocket error on client #%u\n", client->id());
+            break;
+        }
+        default:
             break;
     }
 }
 
-void KNXAsyncWebSocketServer::cleanupConnections() {
-    ws.cleanupClients();
-    
-    // Force garbage collection
-    ESP.getFreeHeap();
-    Log.notice("WebSocket cleanup - Free heap: %d\n", ESP.getFreeHeap());
-}
-
-void KNXAsyncWebSocketServer::logEvent(AsyncWebSocketClient* client, 
-                                     AwsEventType type, 
-                                     const char* message) {
-    if (message) {
-        Log.notice("WebSocket client #%u - %s\n", client->id(), message);
-    }
-}
-
-void KNXAsyncWebSocketServer::handleJsonMessage(AsyncWebSocketClient* client, 
-                                              const char* data, 
-                                              size_t len) {
-    StaticJsonDocument<200> doc;
-    DeserializationError error = deserializeJson(doc, data, len);
-
-    if (error) {
-        Log.error("WebSocket JSON parse failed: %s\n", error.c_str());
-        return;
-    }
-
-    // Handle ping messages for response time measurement
-    if (doc["type"] == "ping") {
-        client->text("{\"type\":\"pong\"}");
-        return;
-    }
-
-    // Forward message to application handler if registered
-    if (messageHandler) {
-        messageHandler(client->id(), (uint8_t*)data, len);
-    }
-}
-
-#endif // FEATURE_WEBS
+#endif // FEATURE_WEB && USE_ASYNC_WEB
