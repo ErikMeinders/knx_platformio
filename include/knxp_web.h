@@ -13,10 +13,15 @@
 
 /**
  * Synchronous web server implementation that serves static files from LittleFS.
+ * Features:
+ * - Non-blocking file operations using chunked transfer
+ * - Maintains heartbeat during file operations using KnxYieldGuard
+ * - Generic file serving without hardcoded paths
+ * - Proper error handling and logging
  */
 class KNXWebServer : public KNXWebServerBase {
 public:
-    KNXWebServer() : server(80) {}
+    KNXWebServer() : server(80), lastLog(0), lastYield(0) {}
     bool begin() override;
     void loop() override;
 
@@ -27,10 +32,10 @@ private:
     ESP8266WebServer server;
     #endif
     
-    void setupHandlers();
-    void handleRoot();
-    void handleNotFound();
-    void handleFile(String path);
+    unsigned long lastLog;    // For periodic logging
+    unsigned long lastYield;  // For periodic yielding
+    
+    void handleRequest();
     const char* getContentType(const String& filename) override;
 };
 

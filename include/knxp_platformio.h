@@ -4,6 +4,11 @@
 // Core includes
 #include <Arduino.h>
 #include <ArduinoLog.h>
+
+// Set default log level if not defined
+#ifndef LOG_LEVEL
+#define LOG_LEVEL LOG_LEVEL_VERBOSE
+#endif
 #include <LittleFS.h>
 
 // KNX includes

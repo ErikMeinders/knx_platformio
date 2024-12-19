@@ -43,7 +43,13 @@ void _knxapp::esp_status()
     Printf("  CPU Freq: %d MHz\n", ESP.getCpuFreqMHz());
     Printf("  Flash Chip Size: %d\n", ESP.getFlashChipSize());
     Printf("  Flash Chip Speed: %d\n", ESP.getFlashChipSpeed());
-    Printf("  Flash Chip Mode: %s\n", ESP.getFlashChipMode() == FM_QIO ? "QIO" : ESP.getFlashChipMode() == FM_QOUT ? "QOUT" : ESP.getFlashChipMode() == FM_DIO ? "DIO" : ESP.getFlashChipMode() == FM_DOUT ? "DOUT" : "UNKNOWN");
+    /*
+    Printf("  Flash Chip Mode: %s\n", ESP.getFlashChipMode() == FM_QIO ? "QIO" : 
+                                        ESP.getFlashChipMode() == FM_QOUT ? "QOUT" : 
+                                        ESP.getFlashChipMode() == FM_DIO ? "DIO" : 
+                                        ESP.getFlashChipMode() == FM_DOUT ? "DOUT" : 
+                                        "UNKNOWN");
+    */
     yieldGuard.check();
     Printf("  Sketch Size: %d\n", ESP.getSketchSize());
     Printf("  Free Sketch Space: %d\n", ESP.getFreeSketchSpace());

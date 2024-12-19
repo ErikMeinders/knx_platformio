@@ -20,12 +20,17 @@ KNXWebSocketServerBase* webSocketServer = nullptr;  // Global instance
  */
 void _knxapp::setup() {
     int step = 0;
+#ifdef SERIAL_SPEED
+    Serial.begin(SERIAL_SPEED);
+#else
     Serial.begin(115200);
+#endif
     Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
     // Initialize basic hardware
     progress(step, "Starting pin setup");
     pinsetup();
+    Log.notice("[setup] Pin setup completed\n");
     step++;
 
     // Initialize networking first and wait for connection
@@ -149,7 +154,7 @@ void _knxapp::loop() {
     #endif
 
     //Log.trace("processNetwork at %s\n", timeNowString());
-    #ifndef NO_NETWORK
+    #ifndef NO_WIFI
         processNetwork();  // Regular network connectivity check
     #endif
 

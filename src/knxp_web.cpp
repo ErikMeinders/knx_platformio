@@ -4,56 +4,65 @@
 #include <Arduino.h>
 #include <LittleFS.h>
 #include <ArduinoLog.h>
+#include "knxp_yield.h"
 
 bool KNXWebServer::begin() {
-    Log.notice("Starting web server initialization\n");
-    
-    if (!LittleFS.begin()) {
-        Log.error("Failed to mount LittleFS\n");
-        return false;
-    }
-    Log.notice("LittleFS mounted successfully\n");
-
-    // Simple test handler
-    server.on("/test", HTTP_GET, [this]() {
-        Log.notice("Test endpoint called\n");
-        String response = "Server is working!";
-        server.sendHeader("Connection", "close");
-        server.send(200, "text/plain", response);
-    });
-
-    // Root handler
-    server.on("/", HTTP_GET, [this]() {
-        Log.notice("Root handler called\n");
-        String response = "<html><body><h1>KNX Web Server</h1><p>Server is running!</p></body></html>";
-        server.sendHeader("Connection", "close");
-        server.send(200, "text/html", response);
-    });
-
+    if (!LittleFS.begin()) return false;
+    server.onNotFound([this]() { handleRequest(); });
     server.begin();
-    Log.notice("Web server started on port 80\n");
     return true;
 }
 
-void KNXWebServer::loop() {
-    static uint32_t lastLog = 0;
-    uint32_t now = millis();
-    
-    // Log every 5 seconds
-    if (now - lastLog > 5000) {
-        Log.notice("Web server loop - Free heap: %d\n", ESP.getFreeHeap());
-        lastLog = now;
+void KNXWebServer::handleRequest() {
+    KnxYieldGuard yieldGuard;
+    String path = server.uri();
+    if (path == "/") path = "/index.html";
+
+    if (!LittleFS.exists(path)) {
+        server.send(404, "text/plain", "404");
+        return;
     }
 
+    File file = LittleFS.open(path, "r");
+    if (!file) {
+        server.send(500, "text/plain", "500");
+        return;
+    }
+
+    const char* contentType = getContentType(path);
+    server.sendHeader("Cache-Control", path.endsWith(".html") ? "no-cache" : "max-age=3600");
+    
+    // Stream file in chunks
+    const size_t CHUNK_SIZE = 512; // Reduced from 1KB to 512B
+    uint8_t buffer[CHUNK_SIZE];
+    size_t totalSent = 0;
+    size_t fileSize = file.size();
+    
+    if (fileSize > 0) server.setContentLength(fileSize);
+    server.send(200, contentType, "");
+    
+    while (file.available()) {
+        yieldGuard.check();
+        size_t bytesRead = file.read(buffer, CHUNK_SIZE);
+        if (bytesRead && server.client().write(buffer, bytesRead) != bytesRead) break;
+        totalSent += bytesRead;
+    }
+    
+    file.close();
+}
+
+void KNXWebServer::loop() {
     server.handleClient();
+    knxLoopYield(lastYield);
 }
 
 const char* KNXWebServer::getContentType(const String& filename) {
     if (filename.endsWith(".html")) return "text/html";
-    else if (filename.endsWith(".css")) return "text/css";
-    else if (filename.endsWith(".js")) return "application/javascript";
-    else if (filename.endsWith(".ico")) return "image/x-icon";
-    else if (filename.endsWith(".gz")) {
+    if (filename.endsWith(".css")) return "text/css";
+    if (filename.endsWith(".js")) return "application/javascript";
+    if (filename.endsWith(".ico")) return "image/x-icon";
+    if (filename.endsWith(".png")) return "image/png";
+    if (filename.endsWith(".gz")) {
         String baseFilename = filename.substring(0, filename.length() - 3);
         return getContentType(baseFilename);
     }

@@ -6,6 +6,7 @@
  * @return Updated step counter
  */
 int initializeNetworkServices(int step) {
+#ifndef NO_WIFI
     if (!isNetworkReady()) return step;
 
     #ifndef NO_NTP
@@ -41,7 +42,7 @@ int initializeNetworkServices(int step) {
         Log.notice("Web server started\n");
         step++;
     #endif
-
+#endif
     return step;
 }
 

@@ -6,8 +6,10 @@
 DECLARE_TIMER(BaseCodeShoutOut, 5);
 
 _knxapp::_knxapp()
-#if defined(FEATURE_WEB) || defined(FEATURE_WEBS)
+#if defined(FEATURE_WEB) && defined(FEATURE_WEBS)
     : webServer(nullptr), webSocketServer(nullptr)
+#elif defined(FEATURE_WEB)
+    : webServer(nullptr)
 #endif
 {
 }
@@ -38,10 +40,12 @@ void _knxapp::pinsetup()
     knx.ledPinActiveOn(LED_BUILTIN_ON);
 
     // pin or GPIO programming button is connected to. Default is 0
+#ifdef PROGMODE_PIN
     knx.buttonPin(PROGMODE_PIN);
     pinMode(PROGMODE_PIN, INPUT_PULLUP);
-
     Log.info("[platform] KNX Program Button pin: %d\n", knx.buttonPin());
+#endif
+
 #ifndef NO_HEARTBEAT
     pinMode(PIN_HEARTBEAT, OUTPUT);
     Log.info("[platform] Heartbeat pin: %d\n", PIN_HEARTBEAT);

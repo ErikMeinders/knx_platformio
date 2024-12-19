@@ -107,6 +107,7 @@ bool isNetworkReady() {
         return false;  // Not ready during stabilization
     }
     return WiFi.status() == WL_CONNECTED;
+
 }
 
 void processNetwork() {
@@ -150,5 +151,11 @@ void startMDNS(const char* hostname) {
     }
 }
 #endif
+
+#else
+bool isNetworkReady() {
+
+    return true;
+}
 
 #endif // NO_WIFI

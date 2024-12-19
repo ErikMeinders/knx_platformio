@@ -48,7 +48,7 @@
     {
       "owner": "thelsing",
       "name": "knx",
-      "version": "*"
+      "version": "^1.4.0"
     },
     {
       "owner": "erikmeinders",
@@ -61,9 +61,8 @@
       "version": "^1.1.1"
     },
     {
-      "owner": "jandrassy",
       "name": "TelnetStream",
-      "version": "1.2.5"
+      "version": "https://github.com/jandrassy/TelnetStream.git#1.2.5"
     },
     {
       "name": "WiFiManager",
@@ -78,18 +77,7 @@
       "name": "WebSockets",
       "version": "^2.6.1"
     },
-    {
-      "owner": "me-no-dev",
-      "name": "ESPAsyncTCP",
-      "version": "https://github.com/me-no-dev/ESPAsyncTCP.git",
-      "platforms": ["espressif8266"]
-    },
-    {
-      "owner": "me-no-dev",
-      "name": "AsyncTCP",
-      "version": "https://github.com/me-no-dev/AsyncTCP.git",
-      "platforms": ["espressif32"]
-    },
+    
     {
       "owner": "me-no-dev",
       "name": "ESPAsyncWebServer",
@@ -102,12 +90,38 @@
     }
   ],
   "build": {
-    "libArchive": false,
+    "libArchive": true,
     "flags": [
-      "-I$LIBRARY_DIR/include"
-    ]
-  },
-  "examples": [
-    "examples/*"
-  ]
+      "-I$PROJECT_DIR/include"
+    ],
+    "platforms": {
+      "espressif8266": {
+        "flags": [
+          "-I$PLATFORMIO_PACKAGES_DIR/framework-arduinoespressif8266/libraries/ESP8266WiFi/src",
+          "-I$PLATFORMIO_PACKAGES_DIR/framework-arduinoespressif8266/tools/sdk/include",
+          "-I$PLATFORMIO_PACKAGES_DIR/framework-arduinoespressif8266/cores/esp8266",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/ESPAsyncTCP/src",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/ESPAsyncWebServer/src",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/ArduinoJson/src",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/WebSockets/src",
+          "-DPIO_FRAMEWORK_ARDUINO_LWIP2_HIGHER_BANDWIDTH",
+          "-DWEBSOCKETS_NETWORK_TYPE=NETWORK_ESP8266_ASYNC",
+          "-DASYNCWEBSERVER_REGEX"
+        ]
+      },
+      "espressif32": {
+        "flags": [
+          "-I$PLATFORMIO_PACKAGES_DIR/framework-arduinoespressif32/libraries/WiFi/src",
+          "-I$PLATFORMIO_PACKAGES_DIR/framework-arduinoespressif32/tools/sdk/include",
+          "-I$PLATFORMIO_PACKAGES_DIR/framework-arduinoespressif32/cores/esp32",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/AsyncTCP/src",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/ESPAsyncWebServer/src",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/ArduinoJson/src",
+          "-I$PROJECT_LIBDEPS_DIR/$PIOENV/WebSockets/src",
+          "-DWEBSOCKETS_NETWORK_TYPE=NETWORK_ESP32",
+          "-DASYNCWEBSERVER_REGEX"
+        ]
+      }
+    }
+  }
 }

@@ -41,4 +41,4 @@ The journal files should be committed to the repository.
 
 ## TODO
 
-- [ ] Transition from blocking webserver and websocket to non-blocking webserver and websocket
+- [ ] Make the examples compile, build and run again.
