@@ -1,3 +1,15 @@
+## [1.0.1](https://github.com/ErikMeinders/knx_platformio/compare/v1.0.0...v1.0.1) (2024-12-19)
+
+
+### Bug Fixes
+
+* added async support ([6a5a251](https://github.com/ErikMeinders/knx_platformio/commit/6a5a251885bce318699f31207ec8494e78c1ebaf))
+* added wrapper for async ([82f179c](https://github.com/ErikMeinders/knx_platformio/commit/82f179ccd9e33e1baabf9eaaa34dd753ef69b6aa))
+* correct const char* declarations in timeinfo module ([541c6ac](https://github.com/ErikMeinders/knx_platformio/commit/541c6ac1593c8b16fbb3ffb592c8f48fc66665e0))
+* dependencies in library ([079f6d2](https://github.com/ErikMeinders/knx_platformio/commit/079f6d27a21f8fbb0e871dd2ca6ba7fc2caec7c2))
+* make MDNS.update() ESP8266-specific ([4e098e1](https://github.com/ErikMeinders/knx_platformio/commit/4e098e188a24b1fbcf1951d753e1ad6c6a2c444e))
+* restored stdio to telnet ([11da34d](https://github.com/ErikMeinders/knx_platformio/commit/11da34d1dc029fc89937e1865863cec5786b6f12))
+
 # [1.0.0](https://github.com/ErikMeinders/knx_platformio/compare/v0.10.1...v1.0.0) (2024-11-30)
 
 
