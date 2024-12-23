@@ -10,7 +10,9 @@
     "home-automation",
     "iot",
     "websocket",
-    "webserver"
+    "webserver",
+    "async",
+    "ota"
   ],
   "repository": {
     "type": "git",
