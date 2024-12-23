@@ -8,7 +8,9 @@ knxapp knxAppInstance;
 
 void knxapp::setup()
 {
+
     _knxapp::setup();  // Call base class implementation first
+    Println("Your setup completed");
 }
 
 void knxapp::loop()
@@ -26,7 +28,7 @@ void knxapp::loop()
 void knxapp::knx_setup()
 {
     Println("Your KNX setup");
-
+return;
     setGroupObjectCount(1);
     knx.getGroupObject(1).dataPointType(DPT_Value_Temp);
     knx.getGroupObject(1).value(19.8);

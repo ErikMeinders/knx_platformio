@@ -31,8 +31,9 @@
   ],
   "export": {
     "include": [
-      "src/knxp_*",
-      "include/knxp_*",
+      "src/**/*.cpp",
+      "include/**/*.h",
+      "include/platformio.h",
       "library.json",
       "CHANGELOG.md",
       "README.md",
@@ -77,7 +78,6 @@
       "name": "WebSockets",
       "version": "^2.6.1"
     },
-    
     {
       "owner": "me-no-dev",
       "name": "ESPAsyncWebServer",
@@ -92,7 +92,13 @@
   "build": {
     "libArchive": true,
     "flags": [
-      "-I$PROJECT_DIR/include"
+      "-I${PACKAGE_DIR}/include",
+      "-I${PACKAGE_DIR}/include/core",
+      "-I${PACKAGE_DIR}/include/network",
+      "-I${PACKAGE_DIR}/include/network/async",
+      "-I${PACKAGE_DIR}/include/web",
+      "-I${PACKAGE_DIR}/include/web/async",
+      "-I${PACKAGE_DIR}/include/utils"
     ],
     "platforms": {
       "espressif8266": {
@@ -106,7 +112,22 @@
           "-I$PROJECT_LIBDEPS_DIR/$PIOENV/WebSockets/src",
           "-DPIO_FRAMEWORK_ARDUINO_LWIP2_HIGHER_BANDWIDTH",
           "-DWEBSOCKETS_NETWORK_TYPE=NETWORK_ESP8266_ASYNC",
-          "-DASYNCWEBSERVER_REGEX"
+          "-DASYNCWEBSERVER_REGEX",
+          "-Wno-unknown-pragmas",
+          "-Wno-unused-function",
+          "-Wno-register",
+          "-Wno-deprecated-declarations"
+        ],
+        "dependencies": [
+          {
+            "name": "ESP8266WiFi"
+          },
+          {
+            "name": "ESP8266WebServer"
+          },
+          {
+            "name": "ESP8266mDNS"
+          }
         ]
       },
       "espressif32": {
@@ -119,7 +140,25 @@
           "-I$PROJECT_LIBDEPS_DIR/$PIOENV/ArduinoJson/src",
           "-I$PROJECT_LIBDEPS_DIR/$PIOENV/WebSockets/src",
           "-DWEBSOCKETS_NETWORK_TYPE=NETWORK_ESP32",
-          "-DASYNCWEBSERVER_REGEX"
+          "-DASYNCWEBSERVER_REGEX",
+          "-Wno-unknown-pragmas",
+          "-Wno-unused-function",
+          "-Wno-register",
+          "-Wno-deprecated-declarations"
+        ],
+        "dependencies": [
+          {
+            "name": "WiFi"
+          },
+          {
+            "name": "WebServer"
+          },
+          {
+            "name": "ESPmDNS"
+          },
+          {
+            "name": "WiFiClientSecure"
+          }
         ]
       }
     }

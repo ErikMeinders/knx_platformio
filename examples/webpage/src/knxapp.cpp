@@ -17,12 +17,12 @@ void knxapp::loop()
     }
     xx++;
 
-#ifdef FEATURE_WEBS
+#ifdef KNXP_FEATURE_WEBS
     if (DUE(BroadcastValue))
     {
         static float temp = 19.0;  // Local static for testing
         String json = "{\"temperature\":" + String(temp, 1) + "}";
-        Log.notice("Broadcasting temperature %f as JSON: %s\n", temp, json.c_str());
+        Log.notice("Broadcasting temperature %s as JSON: %s\n", String(temp, 1).c_str(), json.c_str());
         
         // Simulate temperature changes
         temp += 0.1;

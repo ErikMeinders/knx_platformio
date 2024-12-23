@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function connect() {
         // Use secure WebSocket if page is served over HTTPS
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.hostname}/ws`;
+        const wsUrl = `${protocol}//${window.location.hostname}:81`;
         
         console.log('Connecting to WebSocket:', wsUrl);
         ws = new WebSocket(wsUrl);

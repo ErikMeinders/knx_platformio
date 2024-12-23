@@ -15,29 +15,29 @@
 #include <knx.h>
 
 // ESP compatibility layer
-#include "knxp_espcompat.h"
+#include "utils/knxp_espcompat.h"
 
 // Utility includes
-#include "knxp_timeinfo.h"
-#include "knxp_progress.h"
-#include "knxp_yield.h"
+#include "utils/knxp_timeinfo.h"
+#include "utils/knxp_progress.h"
+#include "utils/knxp_yield.h"
 
 // Web includes - must come before network includes to handle HTTP method definitions
 #ifdef USE_ASYNC_WEB
-    #include "knxp_web_async.h"
-    #include "knxp_webs_async.h"
+    #include "web/async/knxp_web_async.h"
+    #include "web/async/knxp_webs_async.h"
 #else
     #ifdef FEATURE_WEB
-        #include "knxp_web.h"
+        #include "web/knxp_web.h"
     #endif
     #ifdef FEATURE_WEBS
-        #include "knxp_webs.h"
+        #include "web/knxp_webs.h"
     #endif
 #endif
 
 // Network includes
-#include "knxp_network.h"
-#include "knxp_services.h"
+#include "network/knxp_network.h"
+#include "network/knxp_services.h"
 
 // Console handling
 extern Stream* console;
@@ -57,7 +57,7 @@ extern Stream* console;
 #endif
 
 // Application layer
-#include "knxp_app.h"
+#include "core/app.h"
 
 // Ensure KNX mask version is defined
 #ifndef MASK_VERSION
