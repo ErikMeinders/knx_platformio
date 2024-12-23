@@ -1,197 +1,122 @@
 # KNX PlatformIO Library
 
-## Async Mode Usage Guide
+A comprehensive platform for building KNX applications for ESP8266/ESP32 devices with advanced networking, web interfaces, OTA updates, and monitoring capabilities.
 
-### 1. Project Configuration
+## Features
 
-Add the following to your `platformio.ini`:
+- KNX IP routing and tunneling
+- Web interface with optional WebSocket support
+- OTA updates
+- Network monitoring and management
+- Telnet debugging
+- Heartbeat monitoring
+- Async and sync web server support
 
+## Basic Usage
+
+1. Create a project using PlatformIO
+2. Add the library to your `platformio.ini`:
 ```ini
-[env]
-framework = arduino
 lib_deps = 
     knx_platformio
-    me-no-dev/ESPAsyncTCP @ ^1.2.2
-    me-no-dev/ESP Async WebServer @ ^1.2.3
-    ArduinoJson @ ^7.1.0
-    thijse/ArduinoLog @ ^1.1.1
-    jandrassy/TelnetStream @ 1.2.5
-
-build_flags = 
-    -DFEATURE_WEB      ; Enable web server
-    -DFEATURE_WEBS     ; Enable WebSocket server
-    -DUSE_ASYNC_WEB    ; Use async mode
-    -DMASK_VERSION=0x57B0  ; KNX mask version
-    -DHOSTNAME='"knx-esp"' ; Device hostname
 ```
 
-For ESP8266, also add:
-```ini
-[env:esp8266]
-platform = espressif8266
-board = d1
-build_flags = 
-    ${env.build_flags}
-    -DESP8266
-    -DPIO_FRAMEWORK_ARDUINO_LWIP2_HIGHER_BANDWIDTH
-board_build.filesystem = littlefs
-```
-
-For ESP32:
-```ini
-[env:esp32]
-platform = espressif32
-board = wemos_d1_mini32
-build_flags = 
-    ${env.build_flags}
-    -DESP32
-board_build.filesystem = littlefs
-```
-
-### 2. Application Structure
-
-Your application should inherit from `_knxapp`:
-
+3. Create your application class:
 ```cpp
 // knxapp.h
 class knxapp : public _knxapp {
 public:
     void loop() override;
-    void status() override;
     void knx_setup() override;
 };
 ```
 
-### 3. WebSocket Server Usage
+## Compile Options
 
-The WebSocket server is automatically initialized in the base class. To use it in your application:
+The library supports various compile-time options to customize functionality. The base KNX functionality requires no options - use NO_* options to strip features, and FEATURE_* options to add them.
 
-```cpp
-// In your loop() implementation
-if (this->webSocketServer) {
-    // Create your JSON payload
-    String json = "{\"key\":\"value\"}";
-    
-    // Broadcast to all connected clients
-    this->webSocketServer->broadcast(json.c_str());
-}
-```
+### Feature Disabling Options
 
-### 4. Client-Side Integration
+- `-DKNXP_NO_WIFI`: Disable WiFi functionality
+- `-DKNXP_NO_HEARTBEAT`: Disable heartbeat monitoring
+- `-DKNXP_NO_TELNET`: Disable Telnet debugging
+- `-DKNXP_NO_NTP`: Disable NTP time synchronization
+- `-DKNXP_NO_MDNS`: Disable mDNS service discovery
+- `-DKNXP_NO_OTA`: Disable OTA updates
+- `-DKNXP_NO_KNX`: Disable KNX functionality (for testing)
 
-Add WebSocket client in your HTML/JavaScript:
+### Feature Enabling Options
 
-```javascript
-const ws = new WebSocket('ws://' + window.location.hostname + '/ws');
+- `-DKNXP_FEATURE_WEB`: Enable web server
+- `-DKNXP_FEATURE_WEBS`: Enable WebSocket server (requires KNXP_FEATURE_WEB)
+- `-DKNXP_USE_ASYNC_WEB`: Use async web server instead of sync
 
-ws.onopen = () => {
-    console.log('WebSocket connected');
-};
+### Configuration Options
 
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    // Handle received data
-};
-```
+- `-DKNXP_HOSTNAME="device-name"`: Set device hostname
+- `-DKNXP_NETWORK_ONDEMAND`: Enable on-demand network connectivity
+- `-DKNXP_PROG_PIN=0`: Set programming mode pin
+- `-DKNXP_NEOPIXEL_PIN=x`: Configure NeoPixel LED pin
 
-### 5. Important Notes
+## Examples
 
-1. **Initialization Order**:
-   - WiFi must be connected before web server starts
-   - Web server must be initialized before WebSocket server
-   - Both are handled automatically by the library
-   - The sequence is managed in _knxapp::setup()
+The library includes several example projects:
 
-2. **Instance Management**:
-   - Use `this->webSocketServer` in your application code
-   - Don't create your own instances of web or WebSocket servers
-   - The base class manages both global and instance variables
+- `examples/basic/`: Minimal KNX application
+- `examples/webpage/`: Web interface with sync server
+- `examples/webpage_async/`: Web interface with async server
 
-3. **Error Handling**:
-   - Always check if `this->webSocketServer` is not null before using
-   - WebSocket server might be null if initialization failed
-   - Check logs for initialization status
+Each example demonstrates different library features and configurations.
 
-### 6. Example Implementation
+## Project Structure
 
-```cpp
-// knxapp.cpp
-#include "knxapp.h"
-
-DECLARE_TIMER(BroadcastValue, 1);  // 1 second interval
-
-void knxapp::loop() {
-    _knxapp::loop();  // Call base class implementation first
-    
-    if (DUE(BroadcastValue)) {
-        static float value = 0.0;
-        String json = "{\"value\":" + String(value, 1) + "}";
-        
-        if (this->webSocketServer) {
-            this->webSocketServer->broadcast(json.c_str());
-        }
-        
-        value += 0.1;
-        if (value > 100.0) value = 0.0;
-    }
-}
-
-void knxapp::knx_setup() {
-    // Initialize KNX group objects
-    setGroupObjectCount(1);
-    knx.getGroupObject(1).dataPointType(DPT_Value_Temp);
-    knx.getGroupObject(1).value(20.0);
-}
-```
-
-### 7. Debugging
-
-The library uses ArduinoLog for debugging. Enable verbose logging in your setup:
-
-```cpp
-Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-```
-
-Common debug messages to watch for:
-- "Created async web server instance"
-- "WebSocket handler registered at /ws"
-- "WebSocket client connected/disconnected"
-- "Broadcasting to X clients"
-
-### 8. Migration from Sync Mode
-
-If migrating from synchronous mode:
-
-1. Update platformio.ini:
-   - Add `USE_ASYNC_WEB` build flag
-   - Add async library dependencies
-   - Update board configuration if needed
-
-2. Code Changes:
-   - No changes needed if using base class properly
-   - If manually managing servers, remove that code
-   - Use `this->webSocketServer` instead of global variable
-
-3. Common Issues:
-   - WebSocket broadcasts not working: Check `this->webSocketServer` is set
-   - Connection problems: Check initialization sequence in logs
-   - Data not updating: Verify JSON format and client-side parsing
-
-For a complete working example, see the `examples/webpage_async` directory in this repository.
-
-### 9. File Structure
-
-Required files for a minimal async implementation:
-
+Minimal project structure:
 ```
 your_project/
 ├── platformio.ini
 ├── src/
 │   ├── arduino.cpp    # Main entry point
 │   └── knxapp.cpp     # Your application code
-├── include/
-│   └── knxapp.h       # Your application header
+└── include/
+    └── knxapp.h       # Your application header
+```
+
+For web interface projects, add:
+```
+your_project/
 └── data/              # Web files served by LittleFS
     ├── index.html
     ├── style.css
     └── script.js
+```
+
+## Example platformio.ini
+
+```ini
+[env]
+framework = arduino
+lib_deps = 
+    knx_platformio
+
+build_flags = 
+    -DKNXP_HOSTNAME='"knx-device"'
+    -DKNXP_FEATURE_WEB
+    -DKNXP_FEATURE_WEBS
+    -DMASK_VERSION=0x57B0
+
+[env:esp32]
+platform = espressif32
+board = esp32dev
+build_flags = 
+    ${env.build_flags}
+    -DESP32
+board_build.filesystem = littlefs
+```
+
+## Documentation
+
+For more detailed documentation and examples, visit the [examples](examples/) directory in this repository.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
