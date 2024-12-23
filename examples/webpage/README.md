@@ -1,104 +1,127 @@
-# KNX PlatformIO Web Example
+# KNX Temperature Monitor Example
 
-This example demonstrates how to create a web interface with real-time updates using WebSocket communication.
+This example demonstrates three different approaches to implementing WebSocket-based temperature monitoring for KNX devices using ESP8266/ESP32 boards.
 
 ## Features
 
-- Web server serving static files from LittleFS
-- WebSocket server for real-time updates
-- Temperature value broadcasting
-- Responsive file serving with proper chunked transfer
+- Real-time temperature updates via WebSocket
+- Three different WebSocket connection methods:
+  1. Standard WebSocket at `/ws` path
+  2. WebSocket with explicit `/ws` prefix
+  3. WebSocket on port 81
+- Connection status monitoring
+- Automatic reconnection handling
+- Responsive design with CSS styling
+- LittleFS filesystem for web files
 
-## Setup
+## Hardware Requirements
 
-1. Configure platformio.ini:
-```ini
-[env:webpage-esp8266]
-platform = espressif8266
-board = d1
-framework = arduino
-build_flags = 
-    -DFEATURE_WEB      ; Enable web server
-    -DFEATURE_WEBS     ; Enable WebSocket server
+Supported boards:
+- ESP32-S3-DevKitC-1-N32R8 (default)
+- ESP32 (Wemos D1 Mini32)
+- ESP8266 (D1)
+
+Additional requirements:
+- KNX-IP interface connection
+
+## Project Structure
+
 ```
+/data/
+├── index.html          # Standard WebSocket implementation
+├── index-ws.html       # WebSocket with /ws prefix
+├── index-port81.html   # Port 81 implementation
+├── script.js           # Standard WebSocket connection
+├── script-ws.js        # WebSocket with /ws prefix
+├── script-port81.js    # Port 81 connection
+└── style.css          # Shared styles
 
-2. Create your application class:
-```cpp
-class knxapp : public _knxapp {
-public:
-    void loop() override {
-        _knxapp::loop();  // Call base class implementation first
-        
-        if (DUE(BroadcastValue)) {
-            static float temp = 19.0;
-            String json = "{\"temperature\":" + String(temp, 1) + "}";
-            _knxapp::webSocketServer.broadcast(json.c_str());
-            
-            // Update temperature for next broadcast
-            temp += 0.1;
-            if (temp > 25.0) temp = 19.0;
-        }
-    }
-};
-```
-
-3. Prepare your web files:
-- Place HTML, CSS, and JavaScript files in the `data` directory
-- Upload filesystem using `make force-filesystem`
-
-## Web Interface
-
-1. HTML (data/index.html):
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>KNX Temperature</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div id="temperature">--.-°C</div>
-    <script src="script.js"></script>
-</body>
-</html>
-```
-
-2. JavaScript (data/script.js):
-```javascript
-let ws = null;
-const wsPort = 81;
-
-function connect() {
-    ws = new WebSocket(`ws://${window.location.hostname}:${wsPort}`);
-    
-    ws.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        document.getElementById('temperature').textContent = 
-            `${data.temperature.toFixed(1)}°C`;
-    };
-    
-    ws.onclose = function() {
-        setTimeout(connect, 1000);  // Reconnect after 1 second
-    };
-}
-
-connect();
+/src/
+├── arduino.cpp         # Arduino framework initialization
+└── knxapp.cpp         # Main application logic with WebSocket broadcasting
 ```
 
 ## Implementation Details
 
-1. Web Server:
-- Serves static files from LittleFS
-- Uses chunked transfer encoding for efficient delivery
-- Maintains system responsiveness with regular yield() calls
+### Backend (knxapp.cpp)
+- Broadcasts simulated temperature values every second
+- Temperature range: 19.0°C to 25.0°C
+- Uses JSON format for data transmission
+- Includes KNX group object setup with DPT_Value_Temp
 
-2. WebSocket Server:
-- Runs on port 81
-- Broadcasts temperature updates every second
-- Handles client connections automatically
+### Frontend
+All three implementations provide:
+- Real-time temperature display
+- Connection status indicator
+- Automatic reconnection (up to 5 attempts)
+- Error handling and logging
+
+#### Connection Methods
+1. **Standard WebSocket** (index.html)
+   - Connects to `/ws` path on the same port as HTTP
+   - Default implementation
+
+2. **Explicit WebSocket** (index-ws.html)
+   - Uses explicit `/ws` prefix for connection
+   - Useful for specific routing requirements
+
+3. **Port 81** (index-port81.html)
+   - Connects to WebSocket server on port 81
+   - Demonstrates multi-port capability
+
+## Setup Instructions
+
+1. Configure platformio.ini:
+   ```ini
+   build_flags = 
+       -DKNXP_FEATURE_WEB    ; Enable web server
+       -DKNXP_FEATURE_WEBS   ; Enable WebSocket server
+   board_build.filesystem = littlefs
+   ```
+
+2. Select your board environment in platformio.ini:
+   - ESP32-S3: `webpage-esp32s3` (default)
+   - ESP32: `webpage-esp32`
+   - ESP8266: `webpage-esp8266`
+
+3. Configure your network settings in the code
+
+4. Upload the code to your board:
+   ```bash
+   pio run -t upload
+   ```
+
+5. Upload the filesystem:
+   ```bash
+   pio run -t uploadfs
+   ```
+
+## Build Commands
+
+The project includes a Makefile with useful commands:
+
+```bash
+make all              # Build and upload both firmware and filesystem
+make build-firmware   # Build and upload only the firmware
+make build-filesystem # Build and upload only the filesystem
+make force-firmware   # Force rebuild and upload firmware
+make force-filesystem # Force rebuild and upload filesystem
+make clean           # Clean build artifacts
+make check           # Check what needs to be rebuilt
+```
+
+## Usage
+
+Access the different implementations at:
+- Standard: `http://[device-ip]/index.html`
+- WS Prefix: `http://[device-ip]/index-ws.html`
+- Port 81: `http://[device-ip]/index-port81.html`
 
 ## Notes
 
-- Enable both FEATURE_WEB and FEATURE_WEBS in your build flags
-- Upload filesystem after making changes to web files
-- WebSocket server runs on port 81 to avoid conflicts with web server
+- All implementations include automatic reconnection logic
+- Connection status is visually indicated
+- Temperature updates occur every second
+- WebSocket connections handle both HTTP and HTTPS (WSS) protocols
+- Required feature flags: KNXP_FEATURE_WEB and KNXP_FEATURE_WEBS
+- Web files are stored in LittleFS filesystem

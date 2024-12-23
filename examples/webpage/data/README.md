@@ -1,30 +1,49 @@
-# KNX Temperature Monitor Web Interface
+# KNX Temperature Monitor Web Interface Files
 
-This directory contains two versions of the web interface for different WebSocket implementations:
+This directory contains three different implementations of the web interface demonstrating different WebSocket connection methods:
 
-## 1. WebSocket with /ws prefix (index-ws.html)
-- Uses the standard HTTP port with a `/ws` path prefix for WebSocket connections
-- Suitable for ESP32 using standard WebServer
+## 1. Standard WebSocket (index.html)
+- Uses the standard HTTP port with `/ws` path
+- Default implementation
+- Files:
+  - `index.html`: Main HTML file
+  - `script.js`: WebSocket client implementation
+
+## 2. WebSocket with /ws prefix (index-ws.html)
+- Uses explicit `/ws` path prefix for WebSocket connections
+- Useful for specific routing requirements
 - Files:
   - `index-ws.html`: Main HTML file
   - `script-ws.js`: WebSocket client implementation
 
-## 2. WebSocket on Port 81 (index-port81.html)
+## 3. WebSocket on Port 81 (index-port81.html)
 - Uses a dedicated WebSocket server on port 81
-- Suitable for ESP8266 or when using AsyncWebServer
+- Demonstrates multi-port capability
 - Files:
   - `index-port81.html`: Main HTML file
   - `script-port81.js`: WebSocket client implementation
 
-## Usage
-1. Choose the appropriate HTML file based on your ESP device and web server implementation:
-   - For standard WebServer with `/ws` prefix: Use `index-ws.html`
-   - For dedicated WebSocket server on port 81: Use `index-port81.html`
-2. Upload the corresponding files to your device's filesystem
-3. Access the web interface through your device's IP address
+## Shared Files
+- `style.css`: Common styles for all implementations
 
-Both versions provide the same functionality:
-- Real-time temperature display
-- Connection status indication
-- Automatic reconnection attempts
-- JSON message parsing
+## Implementation Details
+
+All versions provide identical functionality:
+- Real-time temperature display (19.0°C to 25.0°C range)
+- Connection status indication with visual feedback
+- Automatic reconnection (up to 5 attempts)
+- Error handling and console logging
+- JSON message parsing for temperature updates
+
+## Usage
+
+Access the different implementations at:
+- Standard: `http://[device-ip]/index.html`
+- WS Prefix: `http://[device-ip]/index-ws.html`
+- Port 81: `http://[device-ip]/index-port81.html`
+
+## Notes
+- All implementations support both HTTP and HTTPS (WSS)
+- Temperature updates occur every second
+- Connection status is visually indicated with color changes
+- Each implementation demonstrates a different approach to WebSocket connectivity
