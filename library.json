@@ -11,9 +11,7 @@
     "iot",
     "websocket",
     "webserver",
-    "async",
-    "ota"
-  ],
+    "async"  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ErikMeinders/knx_platformio.git"
