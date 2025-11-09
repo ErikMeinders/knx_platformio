@@ -10,8 +10,8 @@
 
     #define LED_BUILTIN_ON HIGH
     #define LED_BUILTIN_OFF LOW
-#ifndef KNXP_PROG_PIN
-    #define KNXP_PROG_PIN 27
+#ifndef KNXP_PROGMODE_PIN
+    #define KNXP_PROGMODE_PIN 27
 #endif
 
 #endif
@@ -26,8 +26,8 @@
 
     #define LED_BUILTIN_ON LOW
     #define LED_BUILTIN_OFF HIGH
-#ifndef KNXP_PROG_PIN
-    #define KNXP_PROG_PIN 27         // probably not, but leave it for now!
+#ifndef KNXP_PROGMODE_PIN
+    #define KNXP_PROGMODE_PIN 27         // probably not, but leave it for now!
 #endif
     #define wifi_mode_t WiFiMode
 #endif

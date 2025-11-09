@@ -3,7 +3,7 @@
 
 #include <ArduinoOTA.h>
 
-#ifndef NO_OTA
+#ifndef KNXP_NO_OTA
 /**
  * @brief Initialize Over-The-Air updates
  */
@@ -13,6 +13,6 @@ void otaInit();
  * @brief Handle OTA update process in the main loop
  */
 void otaLoop();
-#endif // NO_OTA
+#endif // KNXP_NO_OTA
 
 #endif // KNXP_OTA_H

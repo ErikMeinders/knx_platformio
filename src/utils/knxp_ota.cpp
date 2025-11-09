@@ -1,7 +1,10 @@
 #include "utils/knxp_ota.h"
-#ifndef NO_OTA
+#ifndef KNXP_NO_OTA
 void otaInit()
 {
+  ArduinoOTA.setHostname(KNXP_HOSTNAME);
+  ArduinoOTA.setPort(3232);
+  
   ArduinoOTA
     .onStart([]() {
       String type;

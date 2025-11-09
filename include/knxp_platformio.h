@@ -42,7 +42,7 @@
 // Console handling
 extern Stream* console;
 
-#ifndef NO_TELNET
+#ifndef KNXP_NO_TELNET
     #include <TelnetStream.h>
     
     // Printf macros that use the console pointer
