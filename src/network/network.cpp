@@ -56,8 +56,8 @@ bool startWiFi(const char* hostname) {
     
     // Configure WiFi manager
     wifiManager->setDebugOutput(true);
-    wifiManager->setConfigPortalTimeout(180);
-    wifiManager->setConnectTimeout(30);
+    wifiManager->setConfigPortalTimeout(180); //hjm
+    wifiManager->setConnectTimeout(30); //hjm
     wifiManager->setBreakAfterConfig(true);  // Exit after saving settings
     
     // Try to connect using stored credentials

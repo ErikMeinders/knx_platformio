@@ -23,7 +23,7 @@ int initializeAsyncNetworkServices(const char* hostname) {
     AsyncWiFiManager wifiManager(&asyncServer, &dns);
     
     // Configure timeout
-    wifiManager.setConfigPortalTimeout(180);  // 3 minutes timeout
+    wifiManager.setConfigPortalTimeout(30);  // 3 minutes timeout
     
     // Set custom hostname
     WiFi.hostname(hostname);
