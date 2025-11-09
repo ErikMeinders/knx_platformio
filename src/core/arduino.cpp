@@ -78,6 +78,7 @@ void _knxapp::loop() {
     //Log.trace("processNetwork at %s\n", timeNowString());
     #ifndef KNXP_NO_WIFI
         processNetwork();  // Regular network connectivity check
+        processNetworkServices();  // Process OTA and other network services
     #endif
 
     #ifdef KNXP_FEATURE_WEB
