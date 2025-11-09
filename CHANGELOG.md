@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/ErikMeinders/knx_platformio/compare/v2.0.0...v2.1.0) (2025-11-09)
+
+
+### Features
+
+* add network services processing to main loop ([a153c70](https://github.com/ErikMeinders/knx_platformio/commit/a153c7044d1cb3064d8a39a638bec385adb18656))
+
 # [2.0.0](https://github.com/ErikMeinders/knx_platformio/compare/v1.0.1...v2.0.0) (2024-12-23)
 
 
